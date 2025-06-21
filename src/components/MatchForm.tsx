@@ -14,8 +14,10 @@ interface MatchFormProps {
 const MatchForm = ({ onAddMatch }: MatchFormProps) => {
   const [newMatch, setNewMatch] = useState({
     tournament: "",
-    player1: "",
-    player2: "",
+    team1Player1: "",
+    team1Player2: "",
+    team2Player1: "",
+    team2Player2: "",
     score: "",
     round: "",
     court: "",
@@ -25,15 +27,25 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     status: "scheduled"
   });
 
+  const isDoublesCategory = newMatch.category.includes("Doubles") || newMatch.category.includes("Mixed");
+
   const handleSubmit = () => {
-    if (!newMatch.tournament || !newMatch.player1 || !newMatch.player2 || !newMatch.category) {
+    if (!newMatch.tournament || !newMatch.team1Player1 || !newMatch.team2Player1 || !newMatch.category) {
       alert("Please fill in all required fields");
+      return;
+    }
+
+    // For doubles, check if both players are filled
+    if (isDoublesCategory && (!newMatch.team1Player2 || !newMatch.team2Player2)) {
+      alert("Please fill in all players for doubles match");
       return;
     }
 
     const match = {
       ...newMatch,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      player1: isDoublesCategory ? `${newMatch.team1Player1} / ${newMatch.team1Player2}` : newMatch.team1Player1,
+      player2: isDoublesCategory ? `${newMatch.team2Player1} / ${newMatch.team2Player2}` : newMatch.team2Player1,
     };
 
     onAddMatch(match);
@@ -41,8 +53,10 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     // Reset form
     setNewMatch({
       tournament: "",
-      player1: "",
-      player2: "",
+      team1Player1: "",
+      team1Player2: "",
+      team2Player1: "",
+      team2Player2: "",
       score: "",
       round: "",
       court: "",
@@ -90,25 +104,59 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="player1">Player 1 *</Label>
-            <Input 
-              id="player1"
-              value={newMatch.player1}
-              onChange={(e) => setNewMatch({...newMatch, player1: e.target.value})}
-              placeholder="First player name"
-            />
+        {/* Team 1 */}
+        <div className="border rounded-lg p-4">
+          <Label className="text-sm font-semibold text-blue-600 mb-2 block">Team 1</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="team1Player1">Player 1 *</Label>
+              <Input 
+                id="team1Player1"
+                value={newMatch.team1Player1}
+                onChange={(e) => setNewMatch({...newMatch, team1Player1: e.target.value})}
+                placeholder="First player name"
+              />
+            </div>
+            
+            {isDoublesCategory && (
+              <div>
+                <Label htmlFor="team1Player2">Player 2 *</Label>
+                <Input 
+                  id="team1Player2"
+                  value={newMatch.team1Player2}
+                  onChange={(e) => setNewMatch({...newMatch, team1Player2: e.target.value})}
+                  placeholder="Second player name"
+                />
+              </div>
+            )}
           </div>
-          
-          <div>
-            <Label htmlFor="player2">Player 2 *</Label>
-            <Input 
-              id="player2"
-              value={newMatch.player2}
-              onChange={(e) => setNewMatch({...newMatch, player2: e.target.value})}
-              placeholder="Second player name"
-            />
+        </div>
+
+        {/* Team 2 */}
+        <div className="border rounded-lg p-4">
+          <Label className="text-sm font-semibold text-red-600 mb-2 block">Team 2</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="team2Player1">Player 1 *</Label>
+              <Input 
+                id="team2Player1"
+                value={newMatch.team2Player1}
+                onChange={(e) => setNewMatch({...newMatch, team2Player1: e.target.value})}
+                placeholder="First player name"
+              />
+            </div>
+            
+            {isDoublesCategory && (
+              <div>
+                <Label htmlFor="team2Player2">Player 2 *</Label>
+                <Input 
+                  id="team2Player2"
+                  value={newMatch.team2Player2}
+                  onChange={(e) => setNewMatch({...newMatch, team2Player2: e.target.value})}
+                  placeholder="Second player name"
+                />
+              </div>
+            )}
           </div>
         </div>
 

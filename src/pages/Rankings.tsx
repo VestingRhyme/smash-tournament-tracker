@@ -2,29 +2,33 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, TrendingUp, Medal } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Trophy, Medal, Award } from "lucide-react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { mockPlayers } from "@/data/mockData";
 
 const Rankings = () => {
   const categories = [
-    "Men's Singles",
-    "Women's Singles", 
-    "Men's Doubles",
-    "Women's Doubles",
-    "Mixed Doubles"
+    { key: "Men's Singles", label: "Men's Singles" },
+    { key: "Women's Singles", label: "Women's Singles" },
+    { key: "Men's Doubles", label: "Men's Doubles" },
+    { key: "Women's Doubles", label: "Women's Doubles" },
+    { key: "Mixed Doubles", label: "Mixed Doubles" }
   ];
 
-  const getPlayersByCategory = (category: string) => {
+  const getPlayersForCategory = (category: string) => {
     return mockPlayers
       .filter(player => player.category === category)
       .sort((a, b) => a.ranking - b.ranking);
   };
 
-  const getCategoryStats = (category: string) => {
-    return getPlayersByCategory(category).length;
+  const getRankIcon = (rank: number) => {
+    if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
+    if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
+    if (rank === 3) return <Award className="h-5 w-5 text-amber-600" />;
+    return null;
   };
 
   return (
@@ -33,123 +37,65 @@ const Rankings = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-4">Player Rankings</h1>
-          <p className="text-lg text-slate-600">Current world rankings across all categories</p>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">World Rankings</h1>
+          <p className="text-lg text-slate-600">Official BWF World Rankings</p>
         </div>
 
-        {/* Category Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Trophy className="h-4 w-4 text-blue-500" />
-                Men's Singles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold text-blue-600">{getCategoryStats("Men's Singles")}</div>
-              <div className="text-xs text-slate-600">Ranked Players</div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="Men's Singles" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            {categories.map((category) => (
+              <TabsTrigger key={category.key} value={category.key}>
+                {category.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Medal className="h-4 w-4 text-purple-500" />
-                Women's Singles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold text-purple-600">{getCategoryStats("Women's Singles")}</div>
-              <div className="text-xs text-slate-600">Ranked Players</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                Men's Doubles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold text-green-600">{getCategoryStats("Men's Doubles")}</div>
-              <div className="text-xs text-slate-600">Ranked Players</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Trophy className="h-4 w-4 text-pink-500" />
-                Women's Doubles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold text-pink-600">{getCategoryStats("Women's Doubles")}</div>
-              <div className="text-xs text-slate-600">Ranked Players</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Medal className="h-4 w-4 text-orange-500" />
-                Mixed Doubles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold text-orange-600">{getCategoryStats("Mixed Doubles")}</div>
-              <div className="text-xs text-slate-600">Ranked Players</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Rankings Tables by Category */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Rankings by Category
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="Men's Singles" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-5">
-                {categories.map((category) => (
-                  <TabsTrigger key={category} value={category} className="text-xs">
-                    {category.replace("'s", "").replace(" ", "\n")}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {categories.map((category) => (
-                <TabsContent key={category} value={category}>
+          {categories.map((category) => (
+            <TabsContent key={category.key} value={category.key}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-6 w-6 text-yellow-500" />
+                    {category.label} Rankings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Rank</TableHead>
+                        <TableHead className="w-16">Rank</TableHead>
                         <TableHead>Player</TableHead>
                         <TableHead>Country</TableHead>
                         <TableHead>Win Rate</TableHead>
                         <TableHead>Recent Form</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getPlayersByCategory(category).map((player) => (
+                      {getPlayersForCategory(category.key).map((player) => (
                         <TableRow key={player.id}>
                           <TableCell>
-                            <Badge 
-                              variant={player.ranking === 1 ? "default" : "secondary"}
-                              className={player.ranking === 1 ? "bg-yellow-500 text-white" : ""}
-                            >
-                              #{player.ranking}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              {getRankIcon(player.ranking)}
+                              <span className="font-bold text-lg">#{player.ranking}</span>
+                            </div>
                           </TableCell>
-                          <TableCell className="font-medium">{player.name}</TableCell>
-                          <TableCell>{player.country}</TableCell>
                           <TableCell>
-                            <span className="font-semibold text-green-600">{player.winRate}%</span>
+                            <div className="font-semibold">{player.name}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{player.country}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-12 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-green-500 transition-all duration-300"
+                                  style={{ width: `${player.winRate}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium">{player.winRate}%</span>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
@@ -165,15 +111,22 @@ const Rankings = () => {
                               ))}
                             </div>
                           </TableCell>
+                          <TableCell>
+                            <Link to={`/player/${player.id}`}>
+                              <Badge className="cursor-pointer hover:bg-blue-600">
+                                View Profile
+                              </Badge>
+                            </Link>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                </TabsContent>
-              ))}
-            </Tabs>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </div>
   );

@@ -285,9 +285,11 @@ const AdminDashboard = () => {
                           </Badge>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Link to={`/admin/tournament/edit/${tournament.id}`}>
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Link to={`/tournament/${tournament.id}`}>
                             <Button size="sm" variant="outline">
                               <Eye className="h-4 w-4" />
@@ -403,9 +405,11 @@ const AdminDashboard = () => {
                           <TableCell>{player.category}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              <Link to={`/admin/player/edit/${player.id}`}>
+                                <Button size="sm" variant="outline">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
                               <Link to={`/player/${player.id}`}>
                                 <Button size="sm" variant="outline">
                                   <Eye className="h-4 w-4" />
