@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Plus, Users, Trophy, Calendar, Settings, BarChart3, Edit, Eye } from "lucide-react";
+import { Plus, Users, Trophy, Calendar, Settings, BarChart3, Edit, Eye, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,12 +13,19 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MatchForm from "@/components/MatchForm";
-import { mockTournaments, mockPlayers, mockMatches } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const AdminDashboard = () => {
-  const [tournaments, setTournaments] = useState(mockTournaments);
-  const [players, setPlayers] = useState(mockPlayers);
-  const [matches, setMatches] = useState(mockMatches);
+  const { 
+    tournaments, 
+    players, 
+    matches, 
+    addTournament, 
+    addPlayer, 
+    addMatch, 
+    deleteTournament, 
+    deletePlayer 
+  } = useAppContext();
   
   const [newTournament, setNewTournament] = useState({
     name: "",
@@ -43,17 +51,8 @@ const AdminDashboard = () => {
       return;
     }
 
-    const tournament = {
-      ...newTournament,
-      id: Date.now().toString(),
-      status: "upcoming" as const,
-      participants: 0,
-      events: 5,
-      organizer: "BWF"
-    };
-
-    setTournaments([...tournaments, tournament]);
-    console.log("Created tournament:", tournament);
+    addTournament(newTournament);
+    console.log("Created tournament:", newTournament);
     
     // Reset form
     setNewTournament({
@@ -73,20 +72,8 @@ const AdminDashboard = () => {
       return;
     }
 
-    const player = {
-      ...newPlayer,
-      id: Date.now().toString(),
-      age: parseInt(newPlayer.age) || 25,
-      ranking: players.filter(p => p.category === newPlayer.category).length + 1,
-      achievements: [],
-      matchesWon: 0,
-      matchesLost: 0,
-      winRate: 0,
-      recentForm: ["W", "L", "W", "W", "L"]
-    };
-
-    setPlayers([...players, player]);
-    console.log("Added player:", player);
+    addPlayer(newPlayer);
+    console.log("Added player:", newPlayer);
     
     // Reset form
     setNewPlayer({
@@ -99,8 +86,20 @@ const AdminDashboard = () => {
   };
 
   const handleAddMatch = (match: any) => {
-    setMatches([...matches, match]);
+    addMatch(match);
     console.log("Added match:", match);
+  };
+
+  const handleDeleteTournament = (id: string) => {
+    if (confirm("Are you sure you want to delete this tournament?")) {
+      deleteTournament(id);
+    }
+  };
+
+  const handleDeletePlayer = (id: string) => {
+    if (confirm("Are you sure you want to delete this player?")) {
+      deletePlayer(id);
+    }
   };
 
   return (
@@ -295,6 +294,14 @@ const AdminDashboard = () => {
                               <Eye className="h-4 w-4" />
                             </Button>
                           </Link>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleDeleteTournament(tournament.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -415,6 +422,14 @@ const AdminDashboard = () => {
                                   <Eye className="h-4 w-4" />
                                 </Button>
                               </Link>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => handleDeletePlayer(player.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>

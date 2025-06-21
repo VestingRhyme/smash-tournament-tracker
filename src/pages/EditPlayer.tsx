@@ -8,12 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { mockPlayers } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const EditPlayer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [player, setPlayer] = useState(mockPlayers.find(p => p.id === id));
+  const { players, updatePlayer } = useAppContext();
+  const [player, setPlayer] = useState(players.find(p => p.id === id));
+
+  useEffect(() => {
+    const foundPlayer = players.find(p => p.id === id);
+    setPlayer(foundPlayer);
+  }, [players, id]);
 
   if (!player) {
     return (
@@ -31,6 +37,7 @@ const EditPlayer = () => {
   }
 
   const handleSave = () => {
+    updatePlayer(player.id, player);
     console.log("Player updated:", player);
     alert("Player updated successfully!");
     navigate("/admin");

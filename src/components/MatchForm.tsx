@@ -107,7 +107,7 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
         {/* Team 1 */}
         <div className="border rounded-lg p-4">
           <Label className="text-sm font-semibold text-blue-600 mb-2 block">Team 1</Label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid ${isDoublesCategory ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
             <div>
               <Label htmlFor="team1Player1">Player 1 *</Label>
               <Input 
@@ -135,7 +135,7 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
         {/* Team 2 */}
         <div className="border rounded-lg p-4">
           <Label className="text-sm font-semibold text-red-600 mb-2 block">Team 2</Label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid ${isDoublesCategory ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
             <div>
               <Label htmlFor="team2Player1">Player 1 *</Label>
               <Input 

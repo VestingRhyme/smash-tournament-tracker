@@ -9,12 +9,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { mockTournaments } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const EditTournament = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [tournament, setTournament] = useState(mockTournaments.find(t => t.id === id));
+  const { tournaments, updateTournament } = useAppContext();
+  const [tournament, setTournament] = useState(tournaments.find(t => t.id === id));
+
+  useEffect(() => {
+    const foundTournament = tournaments.find(t => t.id === id);
+    setTournament(foundTournament);
+  }, [tournaments, id]);
 
   if (!tournament) {
     return (
@@ -32,6 +38,7 @@ const EditTournament = () => {
   }
 
   const handleSave = () => {
+    updateTournament(tournament.id, tournament);
     console.log("Tournament updated:", tournament);
     alert("Tournament updated successfully!");
     navigate("/admin");

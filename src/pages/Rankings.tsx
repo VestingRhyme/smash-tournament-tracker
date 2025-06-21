@@ -1,131 +1,155 @@
 
-import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Medal, Award } from "lucide-react";
-import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { mockPlayers } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Rankings = () => {
-  const categories = [
-    { key: "Men's Singles", label: "Men's Singles" },
-    { key: "Women's Singles", label: "Women's Singles" },
-    { key: "Men's Doubles", label: "Men's Doubles" },
-    { key: "Women's Doubles", label: "Women's Doubles" },
-    { key: "Mixed Doubles", label: "Mixed Doubles" }
-  ];
+  const { players } = useAppContext();
 
-  const getPlayersForCategory = (category: string) => {
-    return mockPlayers
+  const getPlayersByCategory = (category: string) => {
+    return players
       .filter(player => player.category === category)
       .sort((a, b) => a.ranking - b.ranking);
   };
 
-  const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
-    if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
-    if (rank === 3) return <Award className="h-5 w-5 text-amber-600" />;
-    return null;
-  };
+  const PlayerRankingCard = ({ player, position }: { player: any, position: number }) => (
+    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold">
+          {position}
+        </div>
+        <div>
+          <h3 className="font-semibold text-lg">{player.name}</h3>
+          <p className="text-slate-600">{player.country}</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <Badge variant="outline" className="mb-2">
+          Rank #{player.ranking}
+        </Badge>
+        <p className="text-sm text-slate-600">{player.winRate}% Win Rate</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">World Rankings</h1>
-          <p className="text-lg text-slate-600">Official BWF World Rankings</p>
+          <p className="text-lg text-slate-600">Current BWF World Rankings by Category</p>
         </div>
 
-        <Tabs defaultValue="Men's Singles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            {categories.map((category) => (
-              <TabsTrigger key={category.key} value={category.key}>
-                {category.label}
-              </TabsTrigger>
-            ))}
+        <Tabs defaultValue="mens-singles" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+            <TabsTrigger value="mens-singles">Men's Singles</TabsTrigger>
+            <TabsTrigger value="womens-singles">Women's Singles</TabsTrigger>
+            <TabsTrigger value="mens-doubles">Men's Doubles</TabsTrigger>
+            <TabsTrigger value="womens-doubles">Women's Doubles</TabsTrigger>
+            <TabsTrigger value="mens-mixed">Men's XD</TabsTrigger>
+            <TabsTrigger value="womens-mixed">Women's XD</TabsTrigger>
           </TabsList>
 
-          {categories.map((category) => (
-            <TabsContent key={category.key} value={category.key}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-6 w-6 text-yellow-500" />
-                    {category.label} Rankings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-16">Rank</TableHead>
-                        <TableHead>Player</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Win Rate</TableHead>
-                        <TableHead>Recent Form</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getPlayersForCategory(category.key).map((player) => (
-                        <TableRow key={player.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {getRankIcon(player.ranking)}
-                              <span className="font-bold text-lg">#{player.ranking}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-semibold">{player.name}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{player.country}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="w-12 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-green-500 transition-all duration-300"
-                                  style={{ width: `${player.winRate}%` }}
-                                />
-                              </div>
-                              <span className="text-sm font-medium">{player.winRate}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {player.recentForm.map((result, index) => (
-                                <div
-                                  key={index}
-                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                                    result === 'W' ? 'bg-green-500' : 'bg-red-500'
-                                  }`}
-                                >
-                                  {result}
-                                </div>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Link to={`/player/${player.id}`}>
-                              <Badge className="cursor-pointer hover:bg-blue-600">
-                                View Profile
-                              </Badge>
-                            </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
+          <TabsContent value="mens-singles">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-6 w-6 text-blue-600" />
+                  Men's Singles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Men's Singles").map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="womens-singles">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Medal className="h-6 w-6 text-pink-600" />
+                  Women's Singles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Women's Singles").map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="mens-doubles">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-6 w-6 text-green-600" />
+                  Men's Doubles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Men's Doubles").map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="womens-doubles">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-6 w-6 text-purple-600" />
+                  Women's Doubles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Women's Doubles").map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="mens-mixed">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Medal className="h-6 w-6 text-orange-600" />
+                  Men's Mixed Doubles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Mixed Doubles").filter(player => player.name.includes("Zheng") || player.name.includes("Mohammad")).map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="womens-mixed">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-6 w-6 text-red-600" />
+                  Women's Mixed Doubles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Mixed Doubles").filter(player => player.name.includes("Huang")).map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
