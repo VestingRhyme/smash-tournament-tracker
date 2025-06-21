@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Users, Trophy, Calendar, Settings, BarChart3 } from "lucide-react";
+import { Plus, Users, Trophy, Calendar, Settings, BarChart3, Edit, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,10 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { mockTournaments, mockPlayers } from "@/data/mockData";
+import MatchForm from "@/components/MatchForm";
+import { mockTournaments, mockPlayers, mockMatches } from "@/data/mockData";
 
 const AdminDashboard = () => {
+  const [tournaments, setTournaments] = useState(mockTournaments);
+  const [players, setPlayers] = useState(mockPlayers);
+  const [matches, setMatches] = useState(mockMatches);
+  
   const [newTournament, setNewTournament] = useState({
     name: "",
     location: "",
@@ -21,8 +29,32 @@ const AdminDashboard = () => {
     format: "knockout"
   });
 
+  const [newPlayer, setNewPlayer] = useState({
+    name: "",
+    country: "",
+    category: "",
+    age: "",
+    height: ""
+  });
+
   const handleCreateTournament = () => {
-    console.log("Creating tournament:", newTournament);
+    if (!newTournament.name || !newTournament.location) {
+      alert("Please fill in required fields");
+      return;
+    }
+
+    const tournament = {
+      ...newTournament,
+      id: Date.now().toString(),
+      status: "upcoming" as const,
+      participants: 0,
+      events: 5,
+      organizer: "BWF"
+    };
+
+    setTournaments([...tournaments, tournament]);
+    console.log("Created tournament:", tournament);
+    
     // Reset form
     setNewTournament({
       name: "",
@@ -33,6 +65,42 @@ const AdminDashboard = () => {
       prizePool: "",
       format: "knockout"
     });
+  };
+
+  const handleAddPlayer = () => {
+    if (!newPlayer.name || !newPlayer.country || !newPlayer.category) {
+      alert("Please fill in required fields");
+      return;
+    }
+
+    const player = {
+      ...newPlayer,
+      id: Date.now().toString(),
+      age: parseInt(newPlayer.age) || 25,
+      ranking: players.filter(p => p.category === newPlayer.category).length + 1,
+      achievements: [],
+      matchesWon: 0,
+      matchesLost: 0,
+      winRate: 0,
+      recentForm: ["W", "L", "W", "W", "L"]
+    };
+
+    setPlayers([...players, player]);
+    console.log("Added player:", player);
+    
+    // Reset form
+    setNewPlayer({
+      name: "",
+      country: "",
+      category: "",
+      age: "",
+      height: ""
+    });
+  };
+
+  const handleAddMatch = (match: any) => {
+    setMatches([...matches, match]);
+    console.log("Added match:", match);
   };
 
   return (
@@ -52,7 +120,7 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Total Tournaments</p>
-                  <p className="text-3xl font-bold text-blue-600">{mockTournaments.length}</p>
+                  <p className="text-3xl font-bold text-blue-600">{tournaments.length}</p>
                 </div>
                 <Trophy className="h-8 w-8 text-blue-600" />
               </div>
@@ -64,7 +132,7 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Active Players</p>
-                  <p className="text-3xl font-bold text-green-600">{mockPlayers.length}</p>
+                  <p className="text-3xl font-bold text-green-600">{players.length}</p>
                 </div>
                 <Users className="h-8 w-8 text-green-600" />
               </div>
@@ -75,10 +143,10 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Live Events</p>
-                  <p className="text-3xl font-bold text-red-600">2</p>
+                  <p className="text-sm font-medium text-slate-600">Total Matches</p>
+                  <p className="text-3xl font-bold text-purple-600">{matches.length}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-red-600" />
+                <BarChart3 className="h-8 w-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
@@ -87,10 +155,10 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Total Matches</p>
-                  <p className="text-3xl font-bold text-purple-600">150</p>
+                  <p className="text-sm font-medium text-slate-600">Live Events</p>
+                  <p className="text-3xl font-bold text-red-600">{tournaments.filter(t => t.status === 'live').length}</p>
                 </div>
-                <BarChart3 className="h-8 w-8 text-purple-600" />
+                <Calendar className="h-8 w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
@@ -116,7 +184,7 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Tournament Name</Label>
+                    <Label htmlFor="name">Tournament Name *</Label>
                     <Input 
                       id="name"
                       value={newTournament.name}
@@ -126,7 +194,7 @@ const AdminDashboard = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">Location *</Label>
                     <Input 
                       id="location"
                       value={newTournament.location}
@@ -204,15 +272,27 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {mockTournaments.slice(0, 4).map((tournament) => (
+                    {tournaments.map((tournament) => (
                       <div key={tournament.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h4 className="font-semibold">{tournament.name}</h4>
                           <p className="text-sm text-slate-600">{tournament.location}</p>
+                          <Badge className={
+                            tournament.status === 'live' ? 'bg-red-500' :
+                            tournament.status === 'upcoming' ? 'bg-blue-500' : 'bg-gray-500'
+                          }>
+                            {tournament.status}
+                          </Badge>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">Edit</Button>
-                          <Button size="sm" variant="outline">View</Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Link to={`/tournament/${tournament.id}`}>
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     ))}
@@ -222,34 +302,169 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="players" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Player Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-slate-500">
-                  <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>Player management interface</p>
-                  <p className="text-sm">Add, edit, and manage player profiles</p>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="players" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Add Player Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add New Player
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="playerName">Player Name *</Label>
+                    <Input 
+                      id="playerName"
+                      value={newPlayer.name}
+                      onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
+                      placeholder="Enter player name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="playerCountry">Country *</Label>
+                    <Input 
+                      id="playerCountry"
+                      value={newPlayer.country}
+                      onChange={(e) => setNewPlayer({...newPlayer, country: e.target.value})}
+                      placeholder="Enter country"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="playerCategory">Category *</Label>
+                    <Select value={newPlayer.category} onValueChange={(value) => setNewPlayer({...newPlayer, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Men's Singles">Men's Singles</SelectItem>
+                        <SelectItem value="Women's Singles">Women's Singles</SelectItem>
+                        <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
+                        <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
+                        <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="playerAge">Age</Label>
+                      <Input 
+                        id="playerAge"
+                        type="number"
+                        value={newPlayer.age}
+                        onChange={(e) => setNewPlayer({...newPlayer, age: e.target.value})}
+                        placeholder="Age"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="playerHeight">Height</Label>
+                      <Input 
+                        id="playerHeight"
+                        value={newPlayer.height}
+                        onChange={(e) => setNewPlayer({...newPlayer, height: e.target.value})}
+                        placeholder="e.g., 1.75m"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button onClick={handleAddPlayer} className="w-full">
+                    Add Player
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Existing Players */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Players</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {players.slice(0, 6).map((player) => (
+                        <TableRow key={player.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{player.name}</div>
+                              <div className="text-sm text-slate-600">{player.country}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{player.category}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Link to={`/player/${player.id}`}>
+                                <Button size="sm" variant="outline">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
-          <TabsContent value="matches" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Match Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-slate-500">
-                  <Trophy className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>Match scheduling and results interface</p>
-                  <p className="text-sm">Schedule matches and update live scores</p>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="matches" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <MatchForm onAddMatch={handleAddMatch} />
+
+              {/* Existing Matches */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Matches</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Match</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {matches.map((match) => (
+                        <TableRow key={match.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{match.player1} vs {match.player2}</div>
+                              <div className="text-sm text-slate-600">{match.tournament}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{match.category}</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              match.status === 'live' ? 'bg-red-500' :
+                              match.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
+                            }>
+                              {match.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">
