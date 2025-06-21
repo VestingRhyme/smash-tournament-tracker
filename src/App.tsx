@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import TournamentDetails from "./pages/TournamentDetails";
 import PlayerProfile from "./pages/PlayerProfile";
 import AdminDashboard from "./pages/AdminDashboard";
+import Rankings from "./pages/Rankings";
+import Players from "./pages/Players";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/tournament/:id" element={<TournamentDetails />} />
           <Route path="/player/:id" element={<PlayerProfile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/rankings" element={<Rankings />} />
+          <Route path="/players" element={<Players />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
