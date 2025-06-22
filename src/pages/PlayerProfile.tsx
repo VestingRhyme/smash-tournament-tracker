@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Trophy, TrendingUp, Target, Globe, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,46 @@ const PlayerProfile = () => {
       );
     }
     return playerString;
+  };
+
+  const getHeadToHeadStats = (player1Name: string, player2Name: string) => {
+    const h2hMatches = matches.filter(match => {
+      const player1InMatch = match.player1.includes(player1Name) || match.player2.includes(player1Name);
+      const player2InMatch = match.player1.includes(player2Name) || match.player2.includes(player2Name);
+      return player1InMatch && player2InMatch && match.score && match.score !== "TBD";
+    });
+
+    let player1Wins = 0;
+    let player2Wins = 0;
+
+    h2hMatches.forEach(match => {
+      const parseScore = (score: string) => {
+        const sets = score.split(',').map(s => s.trim());
+        let p1Total = 0;
+        let p2Total = 0;
+        
+        sets.forEach(set => {
+          const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+          p1Total += p1;
+          p2Total += p2;
+        });
+        
+        return { p1Total, p2Total };
+      };
+
+      const { p1Total, p2Total } = parseScore(match.score);
+      const player1IsPlayer1 = match.player1.includes(player1Name);
+      
+      if (player1IsPlayer1) {
+        if (p1Total > p2Total) player1Wins++;
+        else player2Wins++;
+      } else {
+        if (p2Total > p1Total) player1Wins++;
+        else player2Wins++;
+      }
+    });
+
+    return { player1Wins, player2Wins, totalMatches: h2hMatches.length };
   };
 
   return (
@@ -157,6 +197,57 @@ const PlayerProfile = () => {
                 <p className="text-sm text-slate-600 mt-3">
                   Last 5 matches (most recent first)
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Head-to-Head Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Head-to-Head Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {players
+                    .filter(p => p.id !== player.id && p.category === player.category)
+                    .map(opponent => {
+                      const h2h = getHeadToHeadStats(player.name, opponent.name);
+                      if (h2h.totalMatches === 0) return null;
+                      
+                      return (
+                        <div key={opponent.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Link to={`/player/${opponent.id}`} className="hover:text-blue-600">
+                              <span className="font-medium">{opponent.name}</span>
+                            </Link>
+                            <span className="text-sm text-slate-600">({opponent.country})</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-lg">
+                              <span className={h2h.player1Wins > h2h.player2Wins ? "text-green-600" : "text-red-600"}>
+                                {h2h.player1Wins}
+                              </span>
+                              <span className="text-slate-400 mx-1">-</span>
+                              <span className={h2h.player2Wins > h2h.player1Wins ? "text-green-600" : "text-red-600"}>
+                                {h2h.player2Wins}
+                              </span>
+                            </div>
+                            <div className="text-sm text-slate-600">
+                              {h2h.totalMatches} matches played
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                    .filter(Boolean)}
+                  
+                  {players
+                    .filter(p => p.id !== player.id && p.category === player.category)
+                    .every(opponent => getHeadToHeadStats(player.name, opponent.name).totalMatches === 0) && (
+                    <p className="text-center text-slate-500 py-8">
+                      No head-to-head records available yet
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 

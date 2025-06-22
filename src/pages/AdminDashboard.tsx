@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus, Users, Trophy, Calendar, Settings, BarChart3, Edit, Eye, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -164,10 +163,11 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="tournaments" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="players">Players</TabsTrigger>
             <TabsTrigger value="matches">Matches</TabsTrigger>
+            <TabsTrigger value="league">League</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -484,6 +484,24 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="league" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>League Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-lg mb-4">Manage league clubs, divisions, and competitions</p>
+                  <Link to="/league">
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Go to League Management
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">

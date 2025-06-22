@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Award } from "lucide-react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
 
@@ -16,23 +17,25 @@ const Rankings = () => {
   };
 
   const PlayerRankingCard = ({ player, position }: { player: any, position: number }) => (
-    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold">
-          {position}
+    <Link to={`/player/${player.id}`} className="block">
+      <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold">
+            {position}
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg hover:text-blue-600">{player.name}</h3>
+            <p className="text-slate-600">{player.country}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-semibold text-lg">{player.name}</h3>
-          <p className="text-slate-600">{player.country}</p>
+        <div className="text-right">
+          <Badge variant="outline" className="mb-2">
+            Rank #{player.ranking}
+          </Badge>
+          <p className="text-sm text-slate-600">{player.winRate}% Win Rate</p>
         </div>
       </div>
-      <div className="text-right">
-        <Badge variant="outline" className="mb-2">
-          Rank #{player.ranking}
-        </Badge>
-        <p className="text-sm text-slate-600">{player.winRate}% Win Rate</p>
-      </div>
-    </div>
+    </Link>
   );
 
   return (
@@ -46,11 +49,9 @@ const Rankings = () => {
         </div>
 
         <Tabs defaultValue="mens-doubles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="mens-doubles">Men's Doubles</TabsTrigger>
             <TabsTrigger value="womens-doubles">Women's Doubles</TabsTrigger>
-            <TabsTrigger value="mens-mixed">Men's XD</TabsTrigger>
-            <TabsTrigger value="womens-mixed">Women's XD</TabsTrigger>
           </TabsList>
 
           <TabsContent value="mens-doubles">
@@ -79,38 +80,6 @@ const Rankings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {getPlayersByCategory("Women's Doubles").map((player, index) => (
-                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="mens-mixed">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Medal className="h-6 w-6 text-orange-600" />
-                  Men's Mixed Doubles Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {getPlayersByCategory("Mixed Doubles").filter(player => player.name.includes("Zheng") || player.name.includes("Mohammad")).map((player, index) => (
-                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="womens-mixed">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-6 w-6 text-red-600" />
-                  Women's Mixed Doubles Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {getPlayersByCategory("Mixed Doubles").filter(player => player.name.includes("Huang")).map((player, index) => (
                   <PlayerRankingCard key={player.id} player={player} position={index + 1} />
                 ))}
               </CardContent>

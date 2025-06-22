@@ -16,14 +16,14 @@ const League = () => {
   const { clubs, leagueResults, playerClubRegistrations, addClub, addLeagueResult, registerPlayerToClub } = useLeagueContext();
   const { players } = useAppContext();
 
-  const [newClub, setNewClub] = useState({ name: "", division: "Division 1" as const });
+  const [newClub, setNewClub] = useState({ name: "", division: "Division 1" as "Division 1" | "Division 2" });
   const [newResult, setNewResult] = useState({
     homeClub: "",
     awayClub: "",
     homeScore: 0,
     awayScore: 0,
     date: "",
-    division: "Division 1" as const
+    division: "Division 1" as "Division 1" | "Division 2"
   });
   const [playerRegistration, setPlayerRegistration] = useState({
     playerId: "",
@@ -34,6 +34,16 @@ const League = () => {
     return clubs
       .filter(club => club.division === division)
       .sort((a, b) => b.points - a.points);
+  };
+
+  const getClubPlayers = (clubId: string) => {
+    return playerClubRegistrations.filter(reg => reg.clubId === clubId);
+  };
+
+  const getClubResults = (clubName: string) => {
+    return leagueResults.filter(result => 
+      result.homeClub === clubName || result.awayClub === clubName
+    );
   };
 
   const handleAddClub = () => {
@@ -76,10 +86,11 @@ const League = () => {
         </div>
 
         <Tabs defaultValue="tables" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="tables">League Tables</TabsTrigger>
+            <TabsTrigger value="clubs">Club Details</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="clubs">Manage Clubs</TabsTrigger>
+            <TabsTrigger value="manage">Manage Clubs</TabsTrigger>
             <TabsTrigger value="players">Player Registration</TabsTrigger>
           </TabsList>
 
@@ -154,6 +165,57 @@ const League = () => {
                   </Table>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="clubs">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {clubs.map((club) => (
+                <Card key={club.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {club.name}
+                      <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {club.division}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Players</h4>
+                      <div className="space-y-1">
+                        {getClubPlayers(club.id).map((reg, index) => (
+                          <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                            {reg.playerName}
+                          </div>
+                        ))}
+                        {getClubPlayers(club.id).length === 0 && (
+                          <p className="text-sm text-gray-500">No players registered</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold mb-2">Recent Results</h4>
+                      <div className="space-y-1">
+                        {getClubResults(club.name).slice(0, 3).map((result) => (
+                          <div key={result.id} className="text-sm bg-gray-50 p-2 rounded">
+                            <div className="flex justify-between">
+                              <span>{result.homeClub} vs {result.awayClub}</span>
+                              <span className="font-bold">{result.homeScore}-{result.awayScore}</span>
+                            </div>
+                            <div className="text-xs text-gray-500">{result.date}</div>
+                          </div>
+                        ))}
+                        {getClubResults(club.name).length === 0 && (
+                          <p className="text-sm text-gray-500">No results yet</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
 
@@ -265,7 +327,7 @@ const League = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="clubs">
+          <TabsContent value="manage">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
