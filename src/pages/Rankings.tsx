@@ -45,47 +45,13 @@ const Rankings = () => {
           <p className="text-lg text-slate-600">Current BWF World Rankings by Category</p>
         </div>
 
-        <Tabs defaultValue="mens-singles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-            <TabsTrigger value="mens-singles">Men's Singles</TabsTrigger>
-            <TabsTrigger value="womens-singles">Women's Singles</TabsTrigger>
+        <Tabs defaultValue="mens-doubles" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="mens-doubles">Men's Doubles</TabsTrigger>
             <TabsTrigger value="womens-doubles">Women's Doubles</TabsTrigger>
             <TabsTrigger value="mens-mixed">Men's XD</TabsTrigger>
             <TabsTrigger value="womens-mixed">Women's XD</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="mens-singles">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-6 w-6 text-blue-600" />
-                  Men's Singles Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {getPlayersByCategory("Men's Singles").map((player, index) => (
-                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="womens-singles">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Medal className="h-6 w-6 text-pink-600" />
-                  Women's Singles Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {getPlayersByCategory("Women's Singles").map((player, index) => (
-                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="mens-doubles">
             <Card>

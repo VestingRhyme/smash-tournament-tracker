@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/Navbar";
-import { mockPlayers, mockMatches } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const PlayerProfile = () => {
   const { id } = useParams();
-  const player = mockPlayers.find(p => p.id === id);
+  const { players, matches } = useAppContext();
+  const player = players.find(p => p.id === id);
   
   if (!player) {
     return (
@@ -26,9 +27,9 @@ const PlayerProfile = () => {
     );
   }
 
-  // Get matches for this player
-  const playerMatches = mockMatches.filter(match => 
-    match.player1 === player.name || match.player2 === player.name
+  // Get matches for this player (including doubles matches)
+  const playerMatches = matches.filter(match => 
+    match.player1.includes(player.name) || match.player2.includes(player.name)
   );
 
   return (
@@ -165,7 +166,7 @@ const PlayerProfile = () => {
                     </TableHeader>
                     <TableBody>
                       {playerMatches.map((match) => {
-                        const opponent = match.player1 === player.name ? match.player2 : match.player1;
+                        const opponent = match.player1.includes(player.name) ? match.player2 : match.player1;
                         return (
                           <TableRow key={match.id}>
                             <TableCell className="font-medium">{opponent}</TableCell>

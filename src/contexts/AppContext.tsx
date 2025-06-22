@@ -57,8 +57,72 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setPlayers(prev => [...prev, newPlayer]);
   };
 
+  const parseScore = (score: string): { player1Score: number, player2Score: number } => {
+    if (!score || score === "TBD") return { player1Score: 0, player2Score: 0 };
+    
+    // Handle scores like "21-15, 21-18" or "21-15"
+    const sets = score.split(',').map(s => s.trim());
+    let player1Total = 0;
+    let player2Total = 0;
+    
+    sets.forEach(set => {
+      const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+      player1Total += p1;
+      player2Total += p2;
+    });
+    
+    return { player1Score: player1Total, player2Score: player2Total };
+  };
+
+  const updatePlayerStats = (match: any) => {
+    if (!match.score || match.score === "TBD") return;
+    
+    const { player1Score, player2Score } = parseScore(match.score);
+    const player1Won = player1Score > player2Score;
+    
+    // Extract individual player names from team names (for doubles)
+    const getPlayerNames = (playerString: string): string[] => {
+      if (playerString.includes(' / ')) {
+        return playerString.split(' / ').map(name => name.trim());
+      }
+      return [playerString.trim()];
+    };
+    
+    const player1Names = getPlayerNames(match.player1);
+    const player2Names = getPlayerNames(match.player2);
+    
+    setPlayers(prev => prev.map(player => {
+      const isPlayer1Team = player1Names.includes(player.name);
+      const isPlayer2Team = player2Names.includes(player.name);
+      
+      if (isPlayer1Team || isPlayer2Team) {
+        const won = (isPlayer1Team && player1Won) || (isPlayer2Team && !player1Won);
+        
+        return {
+          ...player,
+          matchesWon: won ? player.matchesWon + 1 : player.matchesWon,
+          matchesLost: !won ? player.matchesLost + 1 : player.matchesLost,
+          winRate: Math.round(((won ? player.matchesWon + 1 : player.matchesWon) / ((player.matchesWon + player.matchesLost + 1) || 1)) * 100),
+          recentForm: [won ? 'W' : 'L', ...player.recentForm.slice(0, 4)]
+        };
+      }
+      
+      return player;
+    }));
+  };
+
   const addMatch = (match: any) => {
-    setMatches(prev => [...prev, match]);
+    const newMatch = {
+      ...match,
+      id: Date.now().toString()
+    };
+    
+    setMatches(prev => [...prev, newMatch]);
+    
+    // Update player stats if match has a score
+    if (newMatch.score && newMatch.score !== "TBD") {
+      updatePlayerStats(newMatch);
+    }
   };
 
   const deleteTournament = (id: string) => {

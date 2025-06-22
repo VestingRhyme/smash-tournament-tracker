@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { Calendar, MapPin, Trophy, Users, DollarSign, Play, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,17 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
-import { mockTournaments, mockMatches } from "@/data/mockData";
+import { useAppContext } from "@/contexts/AppContext";
 
 const TournamentDetails = () => {
   const { id } = useParams();
-  const tournament = mockTournaments.find(t => t.id === id);
+  const { tournaments, matches } = useAppContext();
+  const tournament = tournaments.find(t => t.id === id);
   
   if (!tournament) {
     return <div>Tournament not found</div>;
   }
 
-  const tournamentMatches = mockMatches.filter(match => 
+  const tournamentMatches = matches.filter(match => 
     match.tournament === tournament.name
   );
 
