@@ -37,10 +37,12 @@ const EditPlayer = () => {
   }
 
   const handleSave = () => {
-    updatePlayer(player.id, player);
-    console.log("Player updated:", player);
-    alert("Player updated successfully!");
-    navigate("/admin");
+    if (player) {
+      updatePlayer(player.id, player);
+      console.log("Player updated:", player);
+      alert("Player updated successfully!");
+      navigate("/admin");
+    }
   };
 
   return (
@@ -88,8 +90,6 @@ const EditPlayer = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Men's Singles">Men's Singles</SelectItem>
-                  <SelectItem value="Women's Singles">Women's Singles</SelectItem>
                   <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
                   <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
                   <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
@@ -104,7 +104,7 @@ const EditPlayer = () => {
                   id="age"
                   type="number"
                   value={player.age}
-                  onChange={(e) => setPlayer({...player, age: parseInt(e.target.value)})}
+                  onChange={(e) => setPlayer({...player, age: parseInt(e.target.value) || 0})}
                 />
               </div>
               <div>
@@ -123,7 +123,7 @@ const EditPlayer = () => {
                 id="ranking"
                 type="number"
                 value={player.ranking}
-                onChange={(e) => setPlayer({...player, ranking: parseInt(e.target.value)})}
+                onChange={(e) => setPlayer({...player, ranking: parseInt(e.target.value) || 0})}
               />
             </div>
             

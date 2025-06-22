@@ -1,9 +1,12 @@
+
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Trophy, TrendingUp, Target, Globe, Calendar } from "lucide-react";
+import { Trophy, TrendingUp, Target, Globe, Calendar, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLeagueContext } from "@/contexts/LeagueContext";
@@ -12,6 +15,8 @@ const PlayerProfile = () => {
   const { id } = useParams();
   const { players, matches } = useAppContext();
   const { playerClubRegistrations } = useLeagueContext();
+  const [selectedOpponent, setSelectedOpponent] = useState<string>("");
+  
   const player = players.find(p => p.id === id);
   
   if (!player) {
@@ -31,10 +36,30 @@ const PlayerProfile = () => {
   // Get player's club
   const playerClub = playerClubRegistrations.find(reg => reg.playerId === player.id);
 
+  // Get all players with same name (for different categories)
+  const allPlayerVersions = players.filter(p => p.name === player.name);
+
   // Get matches for this player (including doubles matches)
   const playerMatches = matches.filter(match => 
     match.player1.includes(player.name) || match.player2.includes(player.name)
   );
+
+  // Get opponents this player has played against
+  const getOpponents = () => {
+    const opponentNames = new Set<string>();
+    playerMatches.forEach(match => {
+      if (match.score && match.score !== "TBD") {
+        const opponent = match.player1.includes(player.name) ? match.player2 : match.player1;
+        // Extract individual names from doubles teams
+        if (opponent.includes(' / ')) {
+          opponent.split(' / ').forEach(name => opponentNames.add(name.trim()));
+        } else {
+          opponentNames.add(opponent.trim());
+        }
+      }
+    });
+    return Array.from(opponentNames).filter(name => name !== player.name);
+  };
 
   const formatPlayerNames = (playerString: string) => {
     if (playerString.includes(' / ')) {
@@ -86,8 +111,11 @@ const PlayerProfile = () => {
       }
     });
 
-    return { player1Wins, player2Wins, totalMatches: h2hMatches.length };
+    return { player1Wins, player2Wins, totalMatches: h2hMatches.length, matches: h2hMatches };
   };
+
+  const opponents = getOpponents();
+  const selectedH2H = selectedOpponent ? getHeadToHeadStats(player.name, selectedOpponent) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -151,6 +179,33 @@ const PlayerProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Stats */}
           <div className="lg:col-span-2 space-y-6">
+            {/* All Rankings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Current Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {allPlayerVersions.map((playerVersion, index) => (
+                    <div key={playerVersion.id} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{playerVersion.category}</h4>
+                          <p className="text-sm text-slate-600">Rank #{playerVersion.ranking}</p>
+                        </div>
+                        <Badge variant="outline">
+                          {playerVersion.winRate}% WR
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -207,54 +262,112 @@ const PlayerProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Head-to-Head Section */}
+            {/* Interactive Head-to-Head Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Head-to-Head Records</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Head-to-Head Analysis
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {players
-                    .filter(p => p.id !== player.id && p.category === player.category)
-                    .map(opponent => {
-                      const h2h = getHeadToHeadStats(player.name, opponent.name);
-                      if (h2h.totalMatches === 0) return null;
-                      
-                      return (
-                        <div key={opponent.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Link to={`/player/${opponent.id}`} className="hover:text-blue-600">
-                              <span className="font-medium">{opponent.name}</span>
-                            </Link>
-                            <span className="text-sm text-slate-600">({opponent.country})</span>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Select Opponent</label>
+                  <Select value={selectedOpponent} onValueChange={setSelectedOpponent}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose an opponent to view head-to-head record" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {opponents.map((opponent) => (
+                        <SelectItem key={opponent} value={opponent}>
+                          {opponent}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedH2H && (
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg bg-slate-50">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">
+                          {player.name} vs {selectedOpponent}
+                        </h4>
+                        <div className="text-right">
+                          <div className="font-bold text-lg">
+                            <span className={selectedH2H.player1Wins > selectedH2H.player2Wins ? "text-green-600" : "text-red-600"}>
+                              {selectedH2H.player1Wins}
+                            </span>
+                            <span className="text-slate-400 mx-1">-</span>
+                            <span className={selectedH2H.player2Wins > selectedH2H.player1Wins ? "text-green-600" : "text-red-600"}>
+                              {selectedH2H.player2Wins}
+                            </span>
                           </div>
-                          <div className="text-right">
-                            <div className="font-bold text-lg">
-                              <span className={h2h.player1Wins > h2h.player2Wins ? "text-green-600" : "text-red-600"}>
-                                {h2h.player1Wins}
-                              </span>
-                              <span className="text-slate-400 mx-1">-</span>
-                              <span className={h2h.player2Wins > h2h.player1Wins ? "text-green-600" : "text-red-600"}>
-                                {h2h.player2Wins}
-                              </span>
-                            </div>
-                            <div className="text-sm text-slate-600">
-                              {h2h.totalMatches} matches played
-                            </div>
+                          <div className="text-sm text-slate-600">
+                            {selectedH2H.totalMatches} matches played
                           </div>
                         </div>
-                      );
-                    })
-                    .filter(Boolean)}
-                  
-                  {players
-                    .filter(p => p.id !== player.id && p.category === player.category)
-                    .every(opponent => getHeadToHeadStats(player.name, opponent.name).totalMatches === 0) && (
-                    <p className="text-center text-slate-500 py-8">
-                      No head-to-head records available yet
-                    </p>
-                  )}
-                </div>
+                      </div>
+                    </div>
+
+                    {selectedH2H.matches.length > 0 && (
+                      <div>
+                        <h5 className="font-medium mb-2">Match History</h5>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Tournament</TableHead>
+                              <TableHead>Score</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead>Result</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedH2H.matches.map((match) => {
+                              const parseScore = (score: string) => {
+                                const sets = score.split(',').map(s => s.trim());
+                                let p1Total = 0;
+                                let p2Total = 0;
+                                
+                                sets.forEach(set => {
+                                  const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+                                  p1Total += p1;
+                                  p2Total += p2;
+                                });
+                                
+                                return { p1Total, p2Total };
+                              };
+
+                              const { p1Total, p2Total } = parseScore(match.score);
+                              const playerIsPlayer1 = match.player1.includes(player.name);
+                              const won = playerIsPlayer1 ? p1Total > p2Total : p2Total > p1Total;
+
+                              return (
+                                <TableRow key={match.id}>
+                                  <TableCell>{match.tournament}</TableCell>
+                                  <TableCell className="font-mono">{match.score}</TableCell>
+                                  <TableCell>{match.date || "Not set"}</TableCell>
+                                  <TableCell>
+                                    <Badge variant={won ? "default" : "destructive"}>
+                                      {won ? "W" : "L"}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {opponents.length === 0 && (
+                  <p className="text-center text-slate-500 py-8">
+                    No opponents found. This player hasn't played any matches with recorded scores yet.
+                  </p>
+                )}
               </CardContent>
             </Card>
 

@@ -15,6 +15,7 @@ import EditPlayer from "./pages/EditPlayer";
 import Rankings from "./pages/Rankings";
 import Players from "./pages/Players";
 import League from "./pages/League";
+import ClubProfile from "./pages/ClubProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/tournament/:id" element={<TournamentDetails />} />
               <Route path="/player/:id" element={<PlayerProfile />} />
+              <Route path="/club/:id" element={<ClubProfile />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/tournament/edit/:id" element={<EditTournament />} />
               <Route path="/admin/player/edit/:id" element={<EditPlayer />} />

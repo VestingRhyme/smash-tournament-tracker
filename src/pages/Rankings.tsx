@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
@@ -49,9 +49,10 @@ const Rankings = () => {
         </div>
 
         <Tabs defaultValue="mens-doubles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="mens-doubles">Men's Doubles</TabsTrigger>
             <TabsTrigger value="womens-doubles">Women's Doubles</TabsTrigger>
+            <TabsTrigger value="mixed-doubles">Mixed Doubles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="mens-doubles">
@@ -80,6 +81,22 @@ const Rankings = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {getPlayersByCategory("Women's Doubles").map((player, index) => (
+                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="mixed-doubles">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-6 w-6 text-orange-600" />
+                  Mixed Doubles Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {getPlayersByCategory("Mixed Doubles").map((player, index) => (
                   <PlayerRankingCard key={player.id} player={player} position={index + 1} />
                 ))}
               </CardContent>

@@ -1,184 +1,123 @@
+
 import { useState } from "react";
-import { Plus, Users, Trophy, Calendar, Settings, BarChart3, Edit, Eye, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Trash2, Edit, Plus, Users, Trophy, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import MatchForm from "@/components/MatchForm";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const AdminDashboard = () => {
-  const { 
-    tournaments, 
-    players, 
-    matches, 
-    addTournament, 
-    addPlayer, 
-    addMatch, 
-    deleteTournament, 
-    deletePlayer 
-  } = useAppContext();
+  const { tournaments, players, matches, addTournament, addPlayer, addMatch, deleteTournament, deletePlayer } = useAppContext();
+  const { clubs, addClub, updateClub, addLeagueResult } = useLeagueContext();
   
-  const { clubs, addClub, updateClub, addLeagueResult, registerPlayerToClub } = useLeagueContext();
-  
-  const [newTournament, setNewTournament] = useState({
-    name: "",
-    location: "",
-    startDate: "",
-    endDate: "",
-    description: "",
-    prizePool: "",
-    format: "knockout"
+  const [newTournament, setNewTournament] = useState({ name: "", location: "", date: "", prize: "" });
+  const [newPlayer, setNewPlayer] = useState({ 
+    name: "", 
+    country: "", 
+    gender: "boy", 
+    age: "", 
+    height: "", 
+    clubId: "" 
   });
-
-  const [newPlayer, setNewPlayer] = useState({
-    name: "",
-    country: "",
-    category: "",
-    age: "",
-    height: "",
-    clubId: ""
-  });
-
-  const [newClub, setNewClub] = useState({
-    name: "",
-    division: "Division 1" as "Division 1" | "Division 2",
-    location: "",
-    founded: "",
-    description: ""
-  });
-
-  const [newResult, setNewResult] = useState({
+  const [newMatch, setNewMatch] = useState({ player1: "", player2: "", tournament: "", category: "", score: "", date: "" });
+  const [newClub, setNewClub] = useState({ name: "", division: "Division 1" as "Division 1" | "Division 2" });
+  const [newLeagueResult, setNewLeagueResult] = useState({
     homeClub: "",
     awayClub: "",
-    homeScore: 0,
-    awayScore: 0,
+    homeScore: "",
+    awayScore: "",
     date: "",
     division: "Division 1" as "Division 1" | "Division 2"
   });
-
   const [editingClub, setEditingClub] = useState<any>(null);
+  const [isEditClubOpen, setIsEditClubOpen] = useState(false);
 
-  const handleCreateTournament = () => {
-    if (!newTournament.name || !newTournament.location) {
-      alert("Please fill in required fields");
-      return;
+  const handleAddTournament = () => {
+    if (newTournament.name && newTournament.location && newTournament.date) {
+      addTournament(newTournament);
+      setNewTournament({ name: "", location: "", date: "", prize: "" });
+      console.log("Tournament added successfully");
     }
-
-    addTournament(newTournament);
-    console.log("Created tournament:", newTournament);
-    
-    // Reset form
-    setNewTournament({
-      name: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-      prizePool: "",
-      format: "knockout"
-    });
   };
 
   const handleAddPlayer = () => {
-    if (!newPlayer.name || !newPlayer.country || !newPlayer.category) {
-      alert("Please fill in required fields");
-      return;
-    }
-
-    const addedPlayer = addPlayer(newPlayer);
-    console.log("Added player:", newPlayer);
-    
-    // If a club is selected, register the player to the club
-    if (newPlayer.clubId && addedPlayer) {
-      const selectedClub = clubs.find(c => c.id === newPlayer.clubId);
-      if (selectedClub) {
-        registerPlayerToClub(addedPlayer.id, newPlayer.clubId, newPlayer.name, selectedClub.name);
-      }
-    }
-    
-    // Reset form
-    setNewPlayer({
-      name: "",
-      country: "",
-      category: "",
-      age: "",
-      height: "",
-      clubId: ""
-    });
-  };
-
-  const handleAddMatch = (match: any) => {
-    addMatch(match);
-    console.log("Added match:", match);
-  };
-
-  const handleDeleteTournament = (id: string) => {
-    if (confirm("Are you sure you want to delete this tournament?")) {
-      deleteTournament(id);
+    if (newPlayer.name && newPlayer.country && newPlayer.gender) {
+      const categories = newPlayer.gender === "boy" 
+        ? ["Men's Doubles", "Mixed Doubles"]
+        : ["Women's Doubles", "Mixed Doubles"];
+      
+      // Add player for each category
+      categories.forEach(category => {
+        const playerData = {
+          ...newPlayer,
+          category,
+          age: parseInt(newPlayer.age) || 25,
+          country: newPlayer.clubId ? clubs.find(c => c.id === newPlayer.clubId)?.name || newPlayer.country : newPlayer.country
+        };
+        addPlayer(playerData);
+      });
+      
+      setNewPlayer({ name: "", country: "", gender: "boy", age: "", height: "", clubId: "" });
+      console.log("Player added successfully");
     }
   };
 
-  const handleDeletePlayer = (id: string) => {
-    if (confirm("Are you sure you want to delete this player?")) {
-      deletePlayer(id);
+  const handleAddMatch = () => {
+    if (newMatch.player1 && newMatch.player2 && newMatch.tournament && newMatch.category) {
+      addMatch(newMatch);
+      setNewMatch({ player1: "", player2: "", tournament: "", category: "", score: "", date: "" });
+      console.log("Match added successfully");
     }
   };
 
   const handleAddClub = () => {
-    if (!newClub.name) {
-      alert("Please fill in required fields");
-      return;
+    if (newClub.name && newClub.division) {
+      addClub(newClub);
+      setNewClub({ name: "", division: "Division 1" });
+      console.log("Club added successfully");
     }
+  };
 
-    addClub(newClub);
-    console.log("Created club:", newClub);
-    
-    setNewClub({
-      name: "",
-      division: "Division 1",
-      location: "",
-      founded: "",
-      description: ""
-    });
+  const handleAddLeagueResult = () => {
+    if (newLeagueResult.homeClub && newLeagueResult.awayClub && newLeagueResult.homeScore && newLeagueResult.awayScore) {
+      addLeagueResult({
+        ...newLeagueResult,
+        homeScore: parseInt(newLeagueResult.homeScore),
+        awayScore: parseInt(newLeagueResult.awayScore)
+      });
+      setNewLeagueResult({
+        homeClub: "",
+        awayClub: "",
+        homeScore: "",
+        awayScore: "",
+        date: "",
+        division: "Division 1"
+      });
+      console.log("League result added successfully");
+    }
   };
 
   const handleEditClub = (club: any) => {
-    setEditingClub(club);
+    setEditingClub({ ...club });
+    setIsEditClubOpen(true);
   };
 
-  const handleUpdateClub = () => {
-    if (!editingClub) return;
-    
-    updateClub(editingClub.id, editingClub);
-    setEditingClub(null);
-  };
-
-  const handleAddResult = () => {
-    if (!newResult.homeClub || !newResult.awayClub || !newResult.date) {
-      alert("Please fill in required fields");
-      return;
+  const handleSaveClub = () => {
+    if (editingClub) {
+      updateClub(editingClub.id, editingClub);
+      setIsEditClubOpen(false);
+      setEditingClub(null);
+      console.log("Club updated successfully");
     }
-
-    addLeagueResult(newResult);
-    console.log("Added result:", newResult);
-    
-    setNewResult({
-      homeClub: "",
-      awayClub: "",
-      homeScore: 0,
-      awayScore: 0,
-      date: "",
-      division: "Division 1"
-    });
   };
 
   return (
@@ -186,182 +125,84 @@ const AdminDashboard = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
-          <p className="text-lg text-slate-600">Manage tournaments, players, and events</p>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Tournaments</p>
-                  <p className="text-3xl font-bold text-blue-600">{tournaments.length}</p>
-                </div>
-                <Trophy className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Active Players</p>
-                  <p className="text-3xl font-bold text-green-600">{players.length}</p>
-                </div>
-                <Users className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Matches</p>
-                  <p className="text-3xl font-bold text-purple-600">{matches.length}</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Total Clubs</p>
-                  <p className="text-3xl font-bold text-red-600">{clubs.length}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+        <h1 className="text-4xl font-bold text-slate-800 mb-8">Admin Dashboard</h1>
+        
         <Tabs defaultValue="tournaments" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
             <TabsTrigger value="players">Players</TabsTrigger>
             <TabsTrigger value="matches">Matches</TabsTrigger>
-            <TabsTrigger value="league">League</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="clubs">Clubs</TabsTrigger>
+            <TabsTrigger value="league-results">League Results</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="tournaments" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Create Tournament Form */}
+          {/* Tournaments Tab */}
+          <TabsContent value="tournaments">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    Create New Tournament
+                    Add New Tournament
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Tournament Name *</Label>
+                    <Label htmlFor="tournament-name">Tournament Name</Label>
                     <Input 
-                      id="name"
+                      id="tournament-name"
                       value={newTournament.name}
                       onChange={(e) => setNewTournament({...newTournament, name: e.target.value})}
-                      placeholder="Enter tournament name"
+                      placeholder="e.g., BWF World Championships"
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="location">Location *</Label>
+                    <Label htmlFor="tournament-location">Location</Label>
                     <Input 
-                      id="location"
+                      id="tournament-location"
                       value={newTournament.location}
                       onChange={(e) => setNewTournament({...newTournament, location: e.target.value})}
-                      placeholder="Enter venue location"
+                      placeholder="e.g., Tokyo, Japan"
                     />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="startDate">Start Date</Label>
-                      <Input 
-                        id="startDate"
-                        type="date"
-                        value={newTournament.startDate}
-                        onChange={(e) => setNewTournament({...newTournament, startDate: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="endDate">End Date</Label>
-                      <Input 
-                        id="endDate"
-                        type="date"
-                        value={newTournament.endDate}
-                        onChange={(e) => setNewTournament({...newTournament, endDate: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  
                   <div>
-                    <Label htmlFor="format">Tournament Format</Label>
-                    <Select value={newTournament.format} onValueChange={(value) => setNewTournament({...newTournament, format: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="knockout">Knockout</SelectItem>
-                        <SelectItem value="round-robin">Round Robin</SelectItem>
-                        <SelectItem value="swiss">Swiss System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="prizePool">Prize Pool</Label>
+                    <Label htmlFor="tournament-date">Date</Label>
                     <Input 
-                      id="prizePool"
-                      value={newTournament.prizePool}
-                      onChange={(e) => setNewTournament({...newTournament, prizePool: e.target.value})}
-                      placeholder="e.g., $100,000"
+                      id="tournament-date"
+                      type="date"
+                      value={newTournament.date}
+                      onChange={(e) => setNewTournament({...newTournament, date: e.target.value})}
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description"
-                      value={newTournament.description}
-                      onChange={(e) => setNewTournament({...newTournament, description: e.target.value})}
-                      placeholder="Tournament description"
-                      rows={3}
+                    <Label htmlFor="tournament-prize">Prize Pool</Label>
+                    <Input 
+                      id="tournament-prize"
+                      value={newTournament.prize}
+                      onChange={(e) => setNewTournament({...newTournament, prize: e.target.value})}
+                      placeholder="e.g., $500,000"
                     />
                   </div>
-                  
-                  <Button onClick={handleCreateTournament} className="w-full">
-                    Create Tournament
+                  <Button onClick={handleAddTournament} className="w-full">
+                    Add Tournament
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Existing Tournaments */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Manage Tournaments</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5" />
+                    Existing Tournaments
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                     {tournaments.map((tournament) => (
-                      <div key={tournament.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={tournament.id} className="flex items-center justify-between p-3 border rounded">
                         <div>
-                          <h4 className="font-semibold">{tournament.name}</h4>
-                          <p className="text-sm text-slate-600">{tournament.location}</p>
-                          <Badge className={
-                            tournament.status === 'live' ? 'bg-red-500' :
-                            tournament.status === 'upcoming' ? 'bg-blue-500' : 'bg-gray-500'
-                          }>
-                            {tournament.status}
-                          </Badge>
+                          <h4 className="font-medium">{tournament.name}</h4>
+                          <p className="text-sm text-slate-600">{tournament.location} • {tournament.date}</p>
                         </div>
                         <div className="flex gap-2">
                           <Link to={`/admin/tournament/edit/${tournament.id}`}>
@@ -369,16 +210,10 @@ const AdminDashboard = () => {
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Link to={`/tournament/${tournament.id}`}>
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
                           <Button 
                             size="sm" 
-                            variant="outline" 
-                            onClick={() => handleDeleteTournament(tournament.id)}
-                            className="text-red-600 hover:text-red-700"
+                            variant="destructive"
+                            onClick={() => deleteTournament(tournament.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -391,9 +226,9 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="players" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Add Player Form */}
+          {/* Players Tab */}
+          <TabsContent value="players">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -403,216 +238,242 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="playerName">Player Name *</Label>
+                    <Label htmlFor="player-name">Player Name</Label>
                     <Input 
-                      id="playerName"
+                      id="player-name"
                       value={newPlayer.name}
                       onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
-                      placeholder="Enter player name"
+                      placeholder="e.g., Viktor Axelsen"
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="playerCountry">Country *</Label>
+                    <Label htmlFor="player-country">Country</Label>
                     <Input 
-                      id="playerCountry"
+                      id="player-country"
                       value={newPlayer.country}
                       onChange={(e) => setNewPlayer({...newPlayer, country: e.target.value})}
-                      placeholder="Enter country"
+                      placeholder="e.g., Denmark"
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="playerCategory">Category *</Label>
-                    <Select value={newPlayer.category} onValueChange={(value) => setNewPlayer({...newPlayer, category: value})}>
+                    <Label htmlFor="player-gender">Gender</Label>
+                    <Select value={newPlayer.gender} onValueChange={(value) => setNewPlayer({...newPlayer, gender: value})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Men's Singles">Men's Singles</SelectItem>
-                        <SelectItem value="Women's Singles">Women's Singles</SelectItem>
-                        <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
-                        <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
-                        <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
+                        <SelectItem value="boy">Boy</SelectItem>
+                        <SelectItem value="girl">Girl</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div>
-                    <Label htmlFor="playerClub">Club (Optional)</Label>
+                    <Label htmlFor="player-club">Club (Optional)</Label>
                     <Select value={newPlayer.clubId} onValueChange={(value) => setNewPlayer({...newPlayer, clubId: value})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select club" />
+                        <SelectValue placeholder="Select a club (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No club</SelectItem>
-                        {clubs.map(club => (
+                        <SelectItem value="">No Club</SelectItem>
+                        {clubs.map((club) => (
                           <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="playerAge">Age</Label>
+                      <Label htmlFor="player-age">Age</Label>
                       <Input 
-                        id="playerAge"
+                        id="player-age"
                         type="number"
                         value={newPlayer.age}
                         onChange={(e) => setNewPlayer({...newPlayer, age: e.target.value})}
-                        placeholder="Age"
+                        placeholder="25"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="playerHeight">Height</Label>
+                      <Label htmlFor="player-height">Height</Label>
                       <Input 
-                        id="playerHeight"
+                        id="player-height"
                         value={newPlayer.height}
                         onChange={(e) => setNewPlayer({...newPlayer, height: e.target.value})}
-                        placeholder="e.g., 1.75m"
+                        placeholder="175cm"
                       />
                     </div>
                   </div>
-                  
                   <Button onClick={handleAddPlayer} className="w-full">
                     Add Player
                   </Button>
                 </CardContent>
               </Card>
 
-              {/* Existing Players */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Manage Players</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Existing Players
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Player</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {players.slice(0, 6).map((player) => (
-                        <TableRow key={player.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{player.name}</div>
-                              <div className="text-sm text-slate-600">{player.country}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{player.category}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Link to={`/admin/player/edit/${player.id}`}>
-                                <Button size="sm" variant="outline">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Link to={`/player/${player.id}`}>
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={() => handleDeletePlayer(player.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {players.map((player) => (
+                      <div key={player.id} className="flex items-center justify-between p-3 border rounded">
+                        <div>
+                          <h4 className="font-medium">{player.name}</h4>
+                          <p className="text-sm text-slate-600">{player.country} • {player.category}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link to={`/admin/player/edit/${player.id}`}>
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => deletePlayer(player.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="matches" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <MatchForm onAddMatch={handleAddMatch} />
+          {/* Matches Tab */}
+          <TabsContent value="matches">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Add New Match
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="match-player1">Player 1</Label>
+                    <Input 
+                      id="match-player1"
+                      value={newMatch.player1}
+                      onChange={(e) => setNewMatch({...newMatch, player1: e.target.value})}
+                      placeholder="e.g., Viktor Axelsen"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-player2">Player 2</Label>
+                    <Input 
+                      id="match-player2"
+                      value={newMatch.player2}
+                      onChange={(e) => setNewMatch({...newMatch, player2: e.target.value})}
+                      placeholder="e.g., Kento Momota"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-tournament">Tournament</Label>
+                    <Select value={newMatch.tournament} onValueChange={(value) => setNewMatch({...newMatch, tournament: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select tournament" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tournaments.map((tournament) => (
+                          <SelectItem key={tournament.id} value={tournament.name}>{tournament.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="match-category">Category</Label>
+                    <Select value={newMatch.category} onValueChange={(value) => setNewMatch({...newMatch, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
+                        <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
+                        <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="match-score">Score</Label>
+                    <Input 
+                      id="match-score"
+                      value={newMatch.score}
+                      onChange={(e) => setNewMatch({...newMatch, score: e.target.value})}
+                      placeholder="e.g., 21-15, 21-18"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-date">Date</Label>
+                    <Input 
+                      id="match-date"
+                      type="date"
+                      value={newMatch.date}
+                      onChange={(e) => setNewMatch({...newMatch, date: e.target.value})}
+                    />
+                  </div>
+                  <Button onClick={handleAddMatch} className="w-full">
+                    Add Match
+                  </Button>
+                </CardContent>
+              </Card>
 
-              {/* Existing Matches */}
               <Card>
                 <CardHeader>
                   <CardTitle>Recent Matches</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Match</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {matches.map((match) => (
-                        <TableRow key={match.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{match.player1} vs {match.player2}</div>
-                              <div className="text-sm text-slate-600">{match.tournament}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{match.category}</TableCell>
-                          <TableCell>
-                            <Badge className={
-                              match.status === 'live' ? 'bg-red-500' :
-                              match.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
-                            }>
-                              {match.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {matches.slice(-10).map((match) => (
+                      <div key={match.id} className="p-3 border rounded">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{match.player1} vs {match.player2}</p>
+                            <p className="text-sm text-slate-600">{match.tournament}</p>
+                            <Badge variant="outline" className="mt-1">{match.category}</Badge>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono text-sm">{match.score || "TBD"}</p>
+                            <p className="text-xs text-slate-500">{match.date || "Not set"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          <TabsContent value="league" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Add/Edit Club Form */}
+          {/* Clubs Tab */}
+          <TabsContent value="clubs">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    {editingClub ? 'Edit Club' : 'Add New Club'}
+                    Add New Club
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Club Name *</Label>
+                    <Label htmlFor="club-name">Club Name</Label>
                     <Input 
-                      value={editingClub ? editingClub.name : newClub.name}
-                      onChange={(e) => editingClub ? 
-                        setEditingClub({...editingClub, name: e.target.value}) :
-                        setNewClub({...newClub, name: e.target.value})
-                      }
-                      placeholder="Enter club name"
+                      id="club-name"
+                      value={newClub.name}
+                      onChange={(e) => setNewClub({...newClub, name: e.target.value})}
+                      placeholder="e.g., Badminton Elite"
                     />
                   </div>
-                  
                   <div>
-                    <Label>Division</Label>
-                    <Select 
-                      value={editingClub ? editingClub.division : newClub.division} 
-                      onValueChange={(value: "Division 1" | "Division 2") => editingClub ?
-                        setEditingClub({...editingClub, division: value}) :
-                        setNewClub({...newClub, division: value})
-                      }
-                    >
+                    <Label htmlFor="club-division">Division</Label>
+                    <Select value={newClub.division} onValueChange={(value) => setNewClub({...newClub, division: value as "Division 1" | "Division 2"})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -622,191 +483,190 @@ const AdminDashboard = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div>
-                    <Label>Location</Label>
-                    <Input 
-                      value={editingClub ? editingClub.location || '' : newClub.location}
-                      onChange={(e) => editingClub ?
-                        setEditingClub({...editingClub, location: e.target.value}) :
-                        setNewClub({...newClub, location: e.target.value})
-                      }
-                      placeholder="Club location"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Founded</Label>
-                    <Input 
-                      value={editingClub ? editingClub.founded || '' : newClub.founded}
-                      onChange={(e) => editingClub ?
-                        setEditingClub({...editingClub, founded: e.target.value}) :
-                        setNewClub({...newClub, founded: e.target.value})
-                      }
-                      placeholder="Year founded"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea 
-                      value={editingClub ? editingClub.description || '' : newClub.description}
-                      onChange={(e) => editingClub ?
-                        setEditingClub({...editingClub, description: e.target.value}) :
-                        setNewClub({...newClub, description: e.target.value})
-                      }
-                      placeholder="Club description"
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button onClick={editingClub ? handleUpdateClub : handleAddClub} className="flex-1">
-                      {editingClub ? 'Update Club' : 'Add Club'}
-                    </Button>
-                    {editingClub && (
-                      <Button variant="outline" onClick={() => setEditingClub(null)}>
-                        Cancel
-                      </Button>
-                    )}
-                  </div>
+                  <Button onClick={handleAddClub} className="w-full">
+                    Add Club
+                  </Button>
                 </CardContent>
               </Card>
 
-              {/* Manage Clubs */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Manage Clubs</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Existing Clubs
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Club</TableHead>
-                        <TableHead>Division</TableHead>
-                        <TableHead>Points</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {clubs.map((club) => (
-                        <TableRow key={club.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{club.name}</div>
-                              <div className="text-sm text-slate-600">{club.location}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{club.division}</TableCell>
-                          <TableCell className="font-bold">{club.points}</TableCell>
-                          <TableCell>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleEditClub(club)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {clubs.map((club) => (
+                      <div key={club.id} className="flex items-center justify-between p-3 border rounded">
+                        <div>
+                          <h4 className="font-medium">{club.name}</h4>
+                          <p className="text-sm text-slate-600">{club.division}</p>
+                          <Badge variant="outline" className="mt-1">{club.points} points</Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleEditClub(club)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
 
-            {/* Add Match Result */}
+          {/* League Results Tab */}
+          <TabsContent value="league-results">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add Match Result
+                  <Calendar className="h-5 w-5" />
+                  Add League Result
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Home Club</Label>
-                    <Select value={newResult.homeClub} onValueChange={(value) => setNewResult({...newResult, homeClub: value})}>
+                    <Label htmlFor="home-club">Home Club</Label>
+                    <Select value={newLeagueResult.homeClub} onValueChange={(value) => setNewLeagueResult({...newLeagueResult, homeClub: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select home club" />
                       </SelectTrigger>
                       <SelectContent>
-                        {clubs.map(club => (
+                        {clubs.map((club) => (
                           <SelectItem key={club.id} value={club.name}>{club.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label>Away Club</Label>
-                    <Select value={newResult.awayClub} onValueChange={(value) => setNewResult({...newResult, awayClub: value})}>
+                    <Label htmlFor="away-club">Away Club</Label>
+                    <Select value={newLeagueResult.awayClub} onValueChange={(value) => setNewLeagueResult({...newLeagueResult, awayClub: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select away club" />
                       </SelectTrigger>
                       <SelectContent>
-                        {clubs.map(club => (
+                        {clubs.map((club) => (
                           <SelectItem key={club.id} value={club.name}>{club.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label>Home Score</Label>
+                    <Label htmlFor="home-score">Home Score</Label>
                     <Input 
-                      type="number" 
-                      min="0" 
-                      max="24"
-                      value={newResult.homeScore}
-                      onChange={(e) => setNewResult({...newResult, homeScore: parseInt(e.target.value) || 0})}
+                      id="home-score"
+                      type="number"
+                      value={newLeagueResult.homeScore}
+                      onChange={(e) => setNewLeagueResult({...newLeagueResult, homeScore: e.target.value})}
+                      placeholder="0"
                     />
                   </div>
                   <div>
-                    <Label>Away Score</Label>
+                    <Label htmlFor="away-score">Away Score</Label>
                     <Input 
-                      type="number" 
-                      min="0" 
-                      max="24"
-                      value={newResult.awayScore}
-                      onChange={(e) => setNewResult({...newResult, awayScore: parseInt(e.target.value) || 0})}
+                      id="away-score"
+                      type="number"
+                      value={newLeagueResult.awayScore}
+                      onChange={(e) => setNewLeagueResult({...newLeagueResult, awayScore: e.target.value})}
+                      placeholder="0"
                     />
                   </div>
                   <div>
-                    <Label>Date</Label>
+                    <Label htmlFor="result-division">Division</Label>
+                    <Select value={newLeagueResult.division} onValueChange={(value) => setNewLeagueResult({...newLeagueResult, division: value as "Division 1" | "Division 2"})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Division 1">Division 1</SelectItem>
+                        <SelectItem value="Division 2">Division 2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="result-date">Date</Label>
                     <Input 
+                      id="result-date"
                       type="date"
-                      value={newResult.date}
-                      onChange={(e) => setNewResult({...newResult, date: e.target.value})}
+                      value={newLeagueResult.date}
+                      onChange={(e) => setNewLeagueResult({...newLeagueResult, date: e.target.value})}
                     />
                   </div>
                 </div>
-
-                <Button onClick={handleAddResult} className="w-full">
-                  Add Result
+                <Button onClick={handleAddLeagueResult} className="w-full">
+                  Add League Result
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
-
-          <TabsContent value="settings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-slate-500">
-                  <Settings className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>System configuration and preferences</p>
-                  <p className="text-sm">Manage system settings and preferences</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
+
+        {/* Edit Club Dialog */}
+        <Dialog open={isEditClubOpen} onOpenChange={setIsEditClubOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Club</DialogTitle>
+            </DialogHeader>
+            {editingClub && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-club-name">Club Name</Label>
+                  <Input 
+                    id="edit-club-name"
+                    value={editingClub.name}
+                    onChange={(e) => setEditingClub({...editingClub, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-club-division">Division</Label>
+                  <Select value={editingClub.division} onValueChange={(value) => setEditingClub({...editingClub, division: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Division 1">Division 1</SelectItem>
+                      <SelectItem value="Division 2">Division 2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-club-location">Location</Label>
+                  <Input 
+                    id="edit-club-location"
+                    value={editingClub.location || ""}
+                    onChange={(e) => setEditingClub({...editingClub, location: e.target.value})}
+                    placeholder="e.g., London, UK"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-club-founded">Founded</Label>
+                  <Input 
+                    id="edit-club-founded"
+                    value={editingClub.founded || ""}
+                    onChange={(e) => setEditingClub({...editingClub, founded: e.target.value})}
+                    placeholder="e.g., 1990"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-club-description">Description</Label>
+                  <Input 
+                    id="edit-club-description"
+                    value={editingClub.description || ""}
+                    onChange={(e) => setEditingClub({...editingClub, description: e.target.value})}
+                    placeholder="Club description..."
+                  />
+                </div>
+                <Button onClick={handleSaveClub} className="w-full">
+                  Save Changes
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
