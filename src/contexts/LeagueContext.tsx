@@ -7,7 +7,8 @@ interface LeagueContextType {
   clubs: Club[];
   leagueResults: LeagueResult[];
   playerClubRegistrations: PlayerClubRegistration[];
-  addClub: (club: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed'>) => void;
+  addClub: (club: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed' | 'matchesWon' | 'matchesLost'>) => void;
+  updateClub: (id: string, updates: Partial<Club>) => void;
   addLeagueResult: (result: Omit<LeagueResult, 'id'>) => void;
   registerPlayerToClub: (playerId: string, clubId: string, playerName: string, clubName: string) => void;
   updateClubStats: (homeClub: string, awayClub: string, homeScore: number, awayScore: number) => void;
@@ -20,16 +21,24 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
   const [leagueResults, setLeagueResults] = useState<LeagueResult[]>(mockLeagueResults);
   const [playerClubRegistrations, setPlayerClubRegistrations] = useState<PlayerClubRegistration[]>(mockPlayerClubRegistrations);
 
-  const addClub = (clubData: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed'>) => {
+  const addClub = (clubData: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed' | 'matchesWon' | 'matchesLost'>) => {
     const newClub: Club = {
       ...clubData,
       id: Date.now().toString(),
       points: 0,
       gamesWon: 0,
       gamesLost: 0,
-      matchesPlayed: 0
+      matchesPlayed: 0,
+      matchesWon: 0,
+      matchesLost: 0
     };
     setClubs(prev => [...prev, newClub]);
+  };
+
+  const updateClub = (id: string, updates: Partial<Club>) => {
+    setClubs(prev => prev.map(club => 
+      club.id === id ? { ...club, ...updates } : club
+    ));
   };
 
   const calculatePoints = (teamScore: number, opponentScore: number): number => {
@@ -49,21 +58,29 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
     setClubs(prev => prev.map(club => {
       if (club.name === homeClub) {
         const points = calculatePoints(homeScore, awayScore);
+        const won = homeScore > awayScore ? 1 : 0;
+        const lost = homeScore < awayScore ? 1 : 0;
         return {
           ...club,
           points: club.points + points,
           gamesWon: club.gamesWon + homeScore,
           gamesLost: club.gamesLost + awayScore,
-          matchesPlayed: club.matchesPlayed + 1
+          matchesPlayed: club.matchesPlayed + 1,
+          matchesWon: club.matchesWon + won,
+          matchesLost: club.matchesLost + lost
         };
       } else if (club.name === awayClub) {
         const points = calculatePoints(awayScore, homeScore);
+        const won = awayScore > homeScore ? 1 : 0;
+        const lost = awayScore < homeScore ? 1 : 0;
         return {
           ...club,
           points: club.points + points,
           gamesWon: club.gamesWon + awayScore,
           gamesLost: club.gamesLost + homeScore,
-          matchesPlayed: club.matchesPlayed + 1
+          matchesPlayed: club.matchesPlayed + 1,
+          matchesWon: club.matchesWon + won,
+          matchesLost: club.matchesLost + lost
         };
       }
       return club;
@@ -95,6 +112,7 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
       leagueResults,
       playerClubRegistrations,
       addClub,
+      updateClub,
       addLeagueResult,
       registerPlayerToClub,
       updateClubStats

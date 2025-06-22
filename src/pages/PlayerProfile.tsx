@@ -6,10 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
+import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const PlayerProfile = () => {
   const { id } = useParams();
   const { players, matches } = useAppContext();
+  const { playerClubRegistrations } = useLeagueContext();
   const player = players.find(p => p.id === id);
   
   if (!player) {
@@ -25,6 +27,9 @@ const PlayerProfile = () => {
       </div>
     );
   }
+
+  // Get player's club
+  const playerClub = playerClubRegistrations.find(reg => reg.playerId === player.id);
 
   // Get matches for this player (including doubles matches)
   const playerMatches = matches.filter(match => 
@@ -108,8 +113,10 @@ const PlayerProfile = () => {
                 <div className="flex items-center gap-3">
                   <Globe className="h-5 w-5 text-blue-600" />
                   <div>
-                    <div className="font-semibold">Country</div>
-                    <div className="text-sm text-slate-600">{player.country}</div>
+                    <div className="font-semibold">Club</div>
+                    <div className="text-sm text-slate-600">
+                      {playerClub ? playerClub.clubName : player.country}
+                    </div>
                   </div>
                 </div>
                 

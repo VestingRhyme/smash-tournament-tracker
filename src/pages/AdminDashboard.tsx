@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import MatchForm from "@/components/MatchForm";
 import { useAppContext } from "@/contexts/AppContext";
+import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const AdminDashboard = () => {
   const { 
@@ -25,6 +26,8 @@ const AdminDashboard = () => {
     deleteTournament, 
     deletePlayer 
   } = useAppContext();
+  
+  const { clubs, addClub, updateClub, addLeagueResult, registerPlayerToClub } = useLeagueContext();
   
   const [newTournament, setNewTournament] = useState({
     name: "",
@@ -41,8 +44,28 @@ const AdminDashboard = () => {
     country: "",
     category: "",
     age: "",
-    height: ""
+    height: "",
+    clubId: ""
   });
+
+  const [newClub, setNewClub] = useState({
+    name: "",
+    division: "Division 1" as "Division 1" | "Division 2",
+    location: "",
+    founded: "",
+    description: ""
+  });
+
+  const [newResult, setNewResult] = useState({
+    homeClub: "",
+    awayClub: "",
+    homeScore: 0,
+    awayScore: 0,
+    date: "",
+    division: "Division 1" as "Division 1" | "Division 2"
+  });
+
+  const [editingClub, setEditingClub] = useState<any>(null);
 
   const handleCreateTournament = () => {
     if (!newTournament.name || !newTournament.location) {
@@ -71,8 +94,16 @@ const AdminDashboard = () => {
       return;
     }
 
-    addPlayer(newPlayer);
+    const addedPlayer = addPlayer(newPlayer);
     console.log("Added player:", newPlayer);
+    
+    // If a club is selected, register the player to the club
+    if (newPlayer.clubId && addedPlayer) {
+      const selectedClub = clubs.find(c => c.id === newPlayer.clubId);
+      if (selectedClub) {
+        registerPlayerToClub(addedPlayer.id, newPlayer.clubId, newPlayer.name, selectedClub.name);
+      }
+    }
     
     // Reset form
     setNewPlayer({
@@ -80,7 +111,8 @@ const AdminDashboard = () => {
       country: "",
       category: "",
       age: "",
-      height: ""
+      height: "",
+      clubId: ""
     });
   };
 
@@ -99,6 +131,54 @@ const AdminDashboard = () => {
     if (confirm("Are you sure you want to delete this player?")) {
       deletePlayer(id);
     }
+  };
+
+  const handleAddClub = () => {
+    if (!newClub.name) {
+      alert("Please fill in required fields");
+      return;
+    }
+
+    addClub(newClub);
+    console.log("Created club:", newClub);
+    
+    setNewClub({
+      name: "",
+      division: "Division 1",
+      location: "",
+      founded: "",
+      description: ""
+    });
+  };
+
+  const handleEditClub = (club: any) => {
+    setEditingClub(club);
+  };
+
+  const handleUpdateClub = () => {
+    if (!editingClub) return;
+    
+    updateClub(editingClub.id, editingClub);
+    setEditingClub(null);
+  };
+
+  const handleAddResult = () => {
+    if (!newResult.homeClub || !newResult.awayClub || !newResult.date) {
+      alert("Please fill in required fields");
+      return;
+    }
+
+    addLeagueResult(newResult);
+    console.log("Added result:", newResult);
+    
+    setNewResult({
+      homeClub: "",
+      awayClub: "",
+      homeScore: 0,
+      awayScore: 0,
+      date: "",
+      division: "Division 1"
+    });
   };
 
   return (
@@ -153,8 +233,8 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Live Events</p>
-                  <p className="text-3xl font-bold text-red-600">{tournaments.filter(t => t.status === 'live').length}</p>
+                  <p className="text-sm font-medium text-slate-600">Total Clubs</p>
+                  <p className="text-3xl font-bold text-red-600">{clubs.length}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-red-600" />
               </div>
@@ -357,6 +437,21 @@ const AdminDashboard = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div>
+                    <Label htmlFor="playerClub">Club (Optional)</Label>
+                    <Select value={newPlayer.clubId} onValueChange={(value) => setNewPlayer({...newPlayer, clubId: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select club" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No club</SelectItem>
+                        {clubs.map(club => (
+                          <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -486,20 +581,213 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="league" className="space-y-4">
+          <TabsContent value="league" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Add/Edit Club Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    {editingClub ? 'Edit Club' : 'Add New Club'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Club Name *</Label>
+                    <Input 
+                      value={editingClub ? editingClub.name : newClub.name}
+                      onChange={(e) => editingClub ? 
+                        setEditingClub({...editingClub, name: e.target.value}) :
+                        setNewClub({...newClub, name: e.target.value})
+                      }
+                      placeholder="Enter club name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Division</Label>
+                    <Select 
+                      value={editingClub ? editingClub.division : newClub.division} 
+                      onValueChange={(value: "Division 1" | "Division 2") => editingClub ?
+                        setEditingClub({...editingClub, division: value}) :
+                        setNewClub({...newClub, division: value})
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Division 1">Division 1</SelectItem>
+                        <SelectItem value="Division 2">Division 2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Location</Label>
+                    <Input 
+                      value={editingClub ? editingClub.location || '' : newClub.location}
+                      onChange={(e) => editingClub ?
+                        setEditingClub({...editingClub, location: e.target.value}) :
+                        setNewClub({...newClub, location: e.target.value})
+                      }
+                      placeholder="Club location"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Founded</Label>
+                    <Input 
+                      value={editingClub ? editingClub.founded || '' : newClub.founded}
+                      onChange={(e) => editingClub ?
+                        setEditingClub({...editingClub, founded: e.target.value}) :
+                        setNewClub({...newClub, founded: e.target.value})
+                      }
+                      placeholder="Year founded"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea 
+                      value={editingClub ? editingClub.description || '' : newClub.description}
+                      onChange={(e) => editingClub ?
+                        setEditingClub({...editingClub, description: e.target.value}) :
+                        setNewClub({...newClub, description: e.target.value})
+                      }
+                      placeholder="Club description"
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button onClick={editingClub ? handleUpdateClub : handleAddClub} className="flex-1">
+                      {editingClub ? 'Update Club' : 'Add Club'}
+                    </Button>
+                    {editingClub && (
+                      <Button variant="outline" onClick={() => setEditingClub(null)}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Manage Clubs */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Clubs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Club</TableHead>
+                        <TableHead>Division</TableHead>
+                        <TableHead>Points</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clubs.map((club) => (
+                        <TableRow key={club.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{club.name}</div>
+                              <div className="text-sm text-slate-600">{club.location}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{club.division}</TableCell>
+                          <TableCell className="font-bold">{club.points}</TableCell>
+                          <TableCell>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditClub(club)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Add Match Result */}
             <Card>
               <CardHeader>
-                <CardTitle>League Management</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Add Match Result
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-lg mb-4">Manage league clubs, divisions, and competitions</p>
-                  <Link to="/league">
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                      Go to League Management
-                    </Button>
-                  </Link>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Home Club</Label>
+                    <Select value={newResult.homeClub} onValueChange={(value) => setNewResult({...newResult, homeClub: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select home club" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clubs.map(club => (
+                          <SelectItem key={club.id} value={club.name}>{club.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Away Club</Label>
+                    <Select value={newResult.awayClub} onValueChange={(value) => setNewResult({...newResult, awayClub: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select away club" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clubs.map(club => (
+                          <SelectItem key={club.id} value={club.name}>{club.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Home Score</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      max="24"
+                      value={newResult.homeScore}
+                      onChange={(e) => setNewResult({...newResult, homeScore: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Away Score</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      max="24"
+                      value={newResult.awayScore}
+                      onChange={(e) => setNewResult({...newResult, awayScore: parseInt(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Date</Label>
+                    <Input 
+                      type="date"
+                      value={newResult.date}
+                      onChange={(e) => setNewResult({...newResult, date: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <Button onClick={handleAddResult} className="w-full">
+                  Add Result
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

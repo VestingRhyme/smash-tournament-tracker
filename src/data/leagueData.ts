@@ -1,4 +1,3 @@
-
 export interface Club {
   id: string;
   name: string;
@@ -7,6 +6,11 @@ export interface Club {
   gamesWon: number;
   gamesLost: number;
   matchesPlayed: number;
+  matchesWon: number;
+  matchesLost: number;
+  location?: string;
+  founded?: string;
+  description?: string;
 }
 
 export interface LeagueResult {
@@ -34,7 +38,9 @@ export const mockClubs: Club[] = [
     points: 15,
     gamesWon: 48,
     gamesLost: 24,
-    matchesPlayed: 3
+    matchesPlayed: 3,
+    matchesWon: 3,
+    matchesLost: 0
   },
   {
     id: "2",
@@ -43,7 +49,9 @@ export const mockClubs: Club[] = [
     points: 12,
     gamesWon: 44,
     gamesLost: 28,
-    matchesPlayed: 3
+    matchesPlayed: 3,
+    matchesWon: 2,
+    matchesLost: 1
   },
   {
     id: "3",
@@ -52,7 +60,9 @@ export const mockClubs: Club[] = [
     points: 9,
     gamesWon: 38,
     gamesLost: 34,
-    matchesPlayed: 3
+    matchesPlayed: 3,
+    matchesWon: 1,
+    matchesLost: 2
   }
 ];
 
