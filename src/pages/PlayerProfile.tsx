@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { Trophy, TrendingUp, Target, Globe, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +30,19 @@ const PlayerProfile = () => {
   const playerMatches = matches.filter(match => 
     match.player1.includes(player.name) || match.player2.includes(player.name)
   );
+
+  const formatPlayerNames = (playerString: string) => {
+    if (playerString.includes(' / ')) {
+      const players = playerString.split(' / ');
+      return (
+        <div>
+          <div>{players[0]}</div>
+          <div className="text-sm text-gray-500">{players[1]}</div>
+        </div>
+      );
+    }
+    return playerString;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -161,7 +173,7 @@ const PlayerProfile = () => {
                         <TableHead>Opponent</TableHead>
                         <TableHead>Tournament</TableHead>
                         <TableHead>Score</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -169,17 +181,10 @@ const PlayerProfile = () => {
                         const opponent = match.player1.includes(player.name) ? match.player2 : match.player1;
                         return (
                           <TableRow key={match.id}>
-                            <TableCell className="font-medium">{opponent}</TableCell>
+                            <TableCell className="font-medium">{formatPlayerNames(opponent)}</TableCell>
                             <TableCell>{match.tournament}</TableCell>
                             <TableCell>{match.score || "TBD"}</TableCell>
-                            <TableCell>
-                              <Badge className={
-                                match.status === 'live' ? 'bg-red-500' :
-                                match.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
-                              }>
-                                {match.status}
-                              </Badge>
-                            </TableCell>
+                            <TableCell>{match.date || "Not set"}</TableCell>
                           </TableRow>
                         );
                       })}
