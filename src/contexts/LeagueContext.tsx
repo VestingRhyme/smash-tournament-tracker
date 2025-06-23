@@ -1,15 +1,22 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { mockClubs, mockFixtures, mockResults } from '@/data/leagueData';
+import { mockClubs, mockFixtures, mockResults, mockPlayerClubRegistrations } from '@/data/leagueData';
 
 export interface Club {
   id: string;
   name: string;
   division: "Division 1" | "Division 2";
   country: string;
+  points: number;
+  gamesWon: number;
+  gamesLost: number;
+  matchesPlayed: number;
+  matchesWon: number;
+  matchesLost: number;
+  location?: string;
+  founded?: string;
+  description?: string;
   wins?: number;
   losses?: number;
-  points?: number;
 }
 
 export interface Fixture {
@@ -38,6 +45,8 @@ interface LeagueContextType {
   clubs: Club[];
   fixtures: Fixture[];
   results: Result[];
+  leagueResults: Result[];
+  playerClubRegistrations: any[];
   addClub: (club: Omit<Club, 'id'>) => void;
   deleteClub: (id: string) => void;
   addFixture: (fixture: Omit<Fixture, 'id' | 'status'>) => void;
@@ -51,6 +60,7 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
   const [clubs, setClubs] = useState<Club[]>(mockClubs);
   const [fixtures, setFixtures] = useState<Fixture[]>(mockFixtures);
   const [results, setResults] = useState<Result[]>(mockResults);
+  const [playerClubRegistrations, setPlayerClubRegistrations] = useState(mockPlayerClubRegistrations);
 
   const addClub = (club: Omit<Club, 'id'>) => {
     const newClub: Club = {
@@ -118,6 +128,8 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
       clubs,
       fixtures,
       results,
+      leagueResults: results,
+      playerClubRegistrations,
       addClub,
       deleteClub,
       addFixture,
