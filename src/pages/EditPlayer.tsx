@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Save } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
+import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const EditPlayer = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { players, updatePlayer } = useAppContext();
-  const [player, setPlayer] = useState(players.find(p => p.id === id));
+  const { clubs } = useLeagueContext();
+  const [player, setPlayer] = useState(() => players.find(p => p.id === id));
 
   useEffect(() => {
     const foundPlayer = players.find(p => p.id === id);
@@ -38,7 +40,11 @@ const EditPlayer = () => {
 
   const handleSave = () => {
     if (player) {
-      updatePlayer(player.id, player);
+      updatePlayer(player.id, {
+        ...player,
+        age: parseInt(player.age.toString()) || player.age,
+        ranking: parseInt(player.ranking.toString()) || player.ranking
+      });
       console.log("Player updated:", player);
       alert("Player updated successfully!");
       navigate("/admin");
@@ -49,9 +55,9 @@ const EditPlayer = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         <div className="mb-6">
-          <Button onClick={() => navigate("/admin")} variant="outline">
+          <Button onClick={() => navigate("/admin")} variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Admin
           </Button>
@@ -59,7 +65,7 @@ const EditPlayer = () => {
 
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <Save className="h-5 w-5" />
               Edit Player
             </CardTitle>
@@ -71,6 +77,7 @@ const EditPlayer = () => {
                 id="name"
                 value={player.name}
                 onChange={(e) => setPlayer({...player, name: e.target.value})}
+                className="mt-1"
               />
             </div>
             
@@ -80,24 +87,44 @@ const EditPlayer = () => {
                 id="country"
                 value={player.country}
                 onChange={(e) => setPlayer({...player, country: e.target.value})}
+                className="mt-1"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="club">Club</Label>
+              <Select value={player.club || ""} onValueChange={(value) => setPlayer({...player, club: value})}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select a club" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No Club</SelectItem>
+                  {clubs.map((club) => (
+                    <SelectItem key={club.id} value={club.name}>
+                      {club.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
               <Label htmlFor="category">Category</Label>
               <Select value={player.category} onValueChange={(value) => setPlayer({...player, category: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
                   <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
+                  <SelectItem value="Men's Mixed">Men's Mixed</SelectItem>
+                  <SelectItem value="Women's Mixed">Women's Mixed</SelectItem>
                   <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="age">Age</Label>
                 <Input 
@@ -105,6 +132,7 @@ const EditPlayer = () => {
                   type="number"
                   value={player.age}
                   onChange={(e) => setPlayer({...player, age: parseInt(e.target.value) || 0})}
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -113,6 +141,7 @@ const EditPlayer = () => {
                   id="height"
                   value={player.height}
                   onChange={(e) => setPlayer({...player, height: e.target.value})}
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -124,6 +153,7 @@ const EditPlayer = () => {
                 type="number"
                 value={player.ranking}
                 onChange={(e) => setPlayer({...player, ranking: parseInt(e.target.value) || 0})}
+                className="mt-1"
               />
             </div>
             

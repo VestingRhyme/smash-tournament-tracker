@@ -1,81 +1,91 @@
 
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Users, BarChart3, Settings, Home, Target } from "lucide-react";
+import { Trophy, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const isActive = (path: string) => {
-    return location.pathname === path;
+  const navItems = [
+    { path: "/", label: "Home" },
+    { path: "/rankings", label: "Rankings" },
+    { path: "/players", label: "Players" },
+    { path: "/league", label: "League" },
+    { path: "/admin", label: "Admin" }
+  ];
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-white shadow-lg border-b">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <Trophy className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-slate-800">BadmintonPro</span>
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-blue-600">
+            <Trophy className="h-6 w-6" />
+            <span className="hidden sm:block">Tournament Tracker</span>
+            <span className="sm:hidden">TT</span>
           </Link>
-          
-          <div className="hidden md:flex space-x-8">
-            <Link
-              to="/"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                isActive('/') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:text-blue-600'
-              }`}
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-            </Link>
-            
-            <Link
-              to="/rankings"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                isActive('/rankings') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:text-blue-600'
-              }`}
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span>Rankings</span>
-            </Link>
-            
-            <Link
-              to="/players"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                isActive('/players') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:text-blue-600'
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              <span>Players</span>
-            </Link>
-            
-            <Link
-              to="/league"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                isActive('/league') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:text-blue-600'
-              }`}
-            >
-              <Target className="h-4 w-4" />
-              <span>League</span>
-            </Link>
-            
-            <Link
-              to="/admin"
-              className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${
-                isActive('/admin') ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:text-blue-600'
-              }`}
-            >
-              <Settings className="h-4 w-4" />
-              <span>Admin</span>
-            </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex space-x-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
-          
+
+          {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button className="text-slate-600">
-              <Users className="h-6 w-6" />
-            </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMobileMenu}
+              className="p-2"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t bg-white">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    location.pathname === item.path
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
