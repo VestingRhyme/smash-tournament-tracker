@@ -1,130 +1,128 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { mockClubs, mockLeagueResults, mockPlayerClubRegistrations } from '@/data/leagueData';
-import type { Club, LeagueResult, PlayerClubRegistration } from '@/data/leagueData';
+import { mockClubs, mockFixtures, mockResults } from '@/data/leagueData';
+
+export interface Club {
+  id: string;
+  name: string;
+  division: "Division 1" | "Division 2";
+  country: string;
+  wins?: number;
+  losses?: number;
+  points?: number;
+}
+
+export interface Fixture {
+  id: string;
+  homeClub: string;
+  awayClub: string;
+  date: string;
+  location: string;
+  division: "Division 1" | "Division 2";
+  status: "scheduled" | "completed";
+  homeScore?: number;
+  awayScore?: number;
+}
+
+export interface Result {
+  id: string;
+  homeClub: string;
+  awayClub: string;
+  homeScore: number;
+  awayScore: number;
+  date: string;
+  division: "Division 1" | "Division 2";
+}
 
 interface LeagueContextType {
   clubs: Club[];
-  leagueResults: LeagueResult[];
-  playerClubRegistrations: PlayerClubRegistration[];
-  addClub: (club: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed' | 'matchesWon' | 'matchesLost'>) => void;
-  updateClub: (id: string, updates: Partial<Club>) => void;
+  fixtures: Fixture[];
+  results: Result[];
+  addClub: (club: Omit<Club, 'id'>) => void;
   deleteClub: (id: string) => void;
-  addLeagueResult: (result: Omit<LeagueResult, 'id'>) => void;
-  addClubMatch: (match: any) => void;
-  registerPlayerToClub: (playerId: string, clubId: string, playerName: string, clubName: string) => void;
-  updateClubStats: (homeClub: string, awayClub: string, homeScore: number, awayScore: number) => void;
+  addFixture: (fixture: Omit<Fixture, 'id' | 'status'>) => void;
+  updateFixture: (id: string, fixture: Partial<Fixture>) => void;
+  addResult: (result: Omit<Result, 'id'>) => void;
 }
 
 const LeagueContext = createContext<LeagueContextType | undefined>(undefined);
 
 export const LeagueProvider = ({ children }: { children: ReactNode }) => {
   const [clubs, setClubs] = useState<Club[]>(mockClubs);
-  const [leagueResults, setLeagueResults] = useState<LeagueResult[]>(mockLeagueResults);
-  const [playerClubRegistrations, setPlayerClubRegistrations] = useState<PlayerClubRegistration[]>(mockPlayerClubRegistrations);
+  const [fixtures, setFixtures] = useState<Fixture[]>(mockFixtures);
+  const [results, setResults] = useState<Result[]>(mockResults);
 
-  const addClub = (clubData: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed' | 'matchesWon' | 'matchesLost'>) => {
+  const addClub = (club: Omit<Club, 'id'>) => {
     const newClub: Club = {
-      ...clubData,
+      ...club,
       id: Date.now().toString(),
-      points: 0,
-      gamesWon: 0,
-      gamesLost: 0,
-      matchesPlayed: 0,
-      matchesWon: 0,
-      matchesLost: 0
+      wins: 0,
+      losses: 0,
+      points: 0
     };
     setClubs(prev => [...prev, newClub]);
-  };
-
-  const updateClub = (id: string, updates: Partial<Club>) => {
-    setClubs(prev => prev.map(club => 
-      club.id === id ? { ...club, ...updates } : club
-    ));
   };
 
   const deleteClub = (id: string) => {
     setClubs(prev => prev.filter(club => club.id !== id));
   };
 
-  const calculatePoints = (teamScore: number, opponentScore: number): number => {
-    if (teamScore > opponentScore) {
-      return opponentScore < 8 ? 3 : 2;
-    } else if (teamScore === opponentScore) {
-      return 2;
-    } else {
-      return teamScore > 8 ? 1 : 0;
-    }
+  const addFixture = (fixture: Omit<Fixture, 'id' | 'status'>) => {
+    const newFixture: Fixture = {
+      ...fixture,
+      id: Date.now().toString(),
+      status: "scheduled"
+    };
+    setFixtures(prev => [...prev, newFixture]);
   };
 
-  const updateClubStats = (homeClub: string, awayClub: string, homeScore: number, awayScore: number) => {
+  const updateFixture = (id: string, updatedFixture: Partial<Fixture>) => {
+    setFixtures(prev => prev.map(fixture => 
+      fixture.id === id ? { ...fixture, ...updatedFixture } : fixture
+    ));
+  };
+
+  const addResult = (result: Omit<Result, 'id'>) => {
+    const newResult: Result = {
+      ...result,
+      id: Date.now().toString()
+    };
+    setResults(prev => [...prev, newResult]);
+    
+    // Update club standings
     setClubs(prev => prev.map(club => {
-      if (club.name === homeClub) {
-        const points = calculatePoints(homeScore, awayScore);
-        const won = homeScore > awayScore ? 1 : 0;
-        const lost = homeScore < awayScore ? 1 : 0;
+      if (club.name === result.homeClub) {
+        const won = result.homeScore > result.awayScore;
         return {
           ...club,
-          points: club.points + points,
-          gamesWon: club.gamesWon + homeScore,
-          gamesLost: club.gamesLost + awayScore,
-          matchesPlayed: club.matchesPlayed + 1,
-          matchesWon: club.matchesWon + won,
-          matchesLost: club.matchesLost + lost
+          wins: (club.wins || 0) + (won ? 1 : 0),
+          losses: (club.losses || 0) + (won ? 0 : 1),
+          points: (club.points || 0) + (won ? 3 : 0)
         };
-      } else if (club.name === awayClub) {
-        const points = calculatePoints(awayScore, homeScore);
-        const won = awayScore > homeScore ? 1 : 0;
-        const lost = awayScore < homeScore ? 1 : 0;
+      }
+      if (club.name === result.awayClub) {
+        const won = result.awayScore > result.homeScore;
         return {
           ...club,
-          points: club.points + points,
-          gamesWon: club.gamesWon + awayScore,
-          gamesLost: club.gamesLost + homeScore,
-          matchesPlayed: club.matchesPlayed + 1,
-          matchesWon: club.matchesWon + won,
-          matchesLost: club.matchesLost + lost
+          wins: (club.wins || 0) + (won ? 1 : 0),
+          losses: (club.losses || 0) + (won ? 0 : 1),
+          points: (club.points || 0) + (won ? 3 : 0)
         };
       }
       return club;
     }));
   };
 
-  const addLeagueResult = (resultData: Omit<LeagueResult, 'id'>) => {
-    const newResult: LeagueResult = {
-      ...resultData,
-      id: Date.now().toString()
-    };
-    setLeagueResults(prev => [...prev, newResult]);
-    updateClubStats(resultData.homeClub, resultData.awayClub, resultData.homeScore, resultData.awayScore);
-  };
-
-  const addClubMatch = (match: any) => {
-    addLeagueResult(match);
-  };
-
-  const registerPlayerToClub = (playerId: string, clubId: string, playerName: string, clubName: string) => {
-    const newRegistration: PlayerClubRegistration = {
-      playerId,
-      clubId,
-      playerName,
-      clubName
-    };
-    setPlayerClubRegistrations(prev => [...prev, newRegistration]);
-  };
-
   return (
     <LeagueContext.Provider value={{
       clubs,
-      leagueResults,
-      playerClubRegistrations,
+      fixtures,
+      results,
       addClub,
-      updateClub,
       deleteClub,
-      addLeagueResult,
-      addClubMatch,
-      registerPlayerToClub,
-      updateClubStats
+      addFixture,
+      updateFixture,
+      addResult
     }}>
       {children}
     </LeagueContext.Provider>

@@ -1,3 +1,4 @@
+
 export interface Player {
   id: string;
   name: string;
@@ -120,30 +121,45 @@ export const mockTournaments = [
     name: "All England Championships 2024",
     location: "Birmingham, England",
     date: "2024-03-13",
+    startDate: "2024-03-13",
+    endDate: "2024-03-17",
     status: "upcoming" as const,
     participants: 128,
     events: 5,
-    organizer: "BWF"
+    organizer: "BWF",
+    prizePool: "$500,000",
+    description: "The most prestigious badminton tournament in the world.",
+    format: "Knockout"
   },
   {
     id: "2", 
     name: "Indonesia Open 2024",
     location: "Jakarta, Indonesia",
     date: "2024-06-11",
+    startDate: "2024-06-11",
+    endDate: "2024-06-16",
     status: "live" as const,
     participants: 96,
     events: 5,
-    organizer: "BWF"
+    organizer: "BWF",
+    prizePool: "$750,000",
+    description: "Premier badminton tournament in Southeast Asia.",
+    format: "Knockout"
   },
   {
     id: "3",
     name: "World Championships 2024", 
     location: "Paris, France",
     date: "2024-08-26",
+    startDate: "2024-08-26",
+    endDate: "2024-09-01",
     status: "completed" as const,
     participants: 150,
     events: 5,
-    organizer: "BWF"
+    organizer: "BWF",
+    prizePool: "$1,000,000",
+    description: "The world's premier badminton championship.",
+    format: "Knockout"
   }
 ];
 
@@ -151,16 +167,18 @@ export const mockMatches = [
   {
     id: "1",
     tournamentId: "1",
+    tournament: "All England Championships 2024",
     player1: "Viktor Axelsen",
     player2: "Chen Long", 
     score: "21-15, 21-18",
     round: "Final",
-    category: "Men's Singles",
+    category: "Men's Doubles",
     date: "2024-03-17"
   },
   {
     id: "2",
     tournamentId: "2",
+    tournament: "Indonesia Open 2024",
     player1: "Mohammad Ahsan / Kevin Sanjaya",
     player2: "Marcus Gideon / Kevin Sukamuljo",
     score: "21-19, 18-21, 21-16", 
@@ -171,11 +189,12 @@ export const mockMatches = [
   {
     id: "3",
     tournamentId: "3",
+    tournament: "World Championships 2024",
     player1: "Akane Yamaguchi",
     player2: "Carolina Marin",
     score: "TBD",
     round: "Quarterfinal", 
-    category: "Women's Singles",
+    category: "Women's Doubles",
     date: "2024-08-29"
   }
 ];
