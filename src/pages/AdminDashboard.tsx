@@ -29,7 +29,15 @@ const AdminDashboard = () => {
     createClub({
       name: newClub.name,
       division: newClub.division as "Division 1" | "Division 2",
-      country: newClub.country
+      country: newClub.country,
+      points: 0,
+      gamesWon: 0,
+      gamesLost: 0,
+      matchesPlayed: 0,
+      matchesWon: 0,
+      matchesLost: 0,
+      wins: 0,
+      losses: 0
     });
 
     setNewClub({ name: "", division: "", country: "" });
@@ -228,7 +236,7 @@ const AdminDashboard = () => {
                       <SelectValue placeholder="Select club" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Club</SelectItem>
+                      <SelectItem value="no-club">No Club</SelectItem>
                       {clubs.map((club) => (
                         <SelectItem key={club.id} value={club.name}>
                           {club.name}
