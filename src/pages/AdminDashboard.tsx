@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,19 +10,19 @@ import { useAppContext } from "@/contexts/AppContext";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const AdminDashboard = () => {
-  const { tournaments, players, addTournament, addPlayer, deleteTournament, deletePlayer } = useAppContext();
-  const { clubs, addClub, deleteClub } = useLeagueContext();
+  const { tournaments, players, addTournament: createTournament, addPlayer: createPlayer, deleteTournament, deletePlayer } = useAppContext();
+  const { clubs, addClub: createClub, deleteClub } = useLeagueContext();
   const [newTournament, setNewTournament] = useState({ name: "", location: "", date: "" });
   const [newPlayer, setNewPlayer] = useState({ name: "", country: "", gender: "", age: "", height: "", club: "" });
   const [newClub, setNewClub] = useState({ name: "", division: "", country: "" });
 
-  const addClub = () => {
+  const handleAddClub = () => {
     if (!newClub.name || !newClub.division || !newClub.country) {
       alert("Please fill in all fields");
       return;
     }
 
-    addClub({
+    createClub({
       name: newClub.name,
       division: newClub.division as "Division 1" | "Division 2",
       country: newClub.country
@@ -30,13 +31,13 @@ const AdminDashboard = () => {
     setNewClub({ name: "", division: "", country: "" });
   };
 
-  const addTournament = () => {
+  const handleAddTournament = () => {
     if (!newTournament.name || !newTournament.location || !newTournament.date) {
       alert("Please fill in all fields");
       return;
     }
 
-    addTournament({
+    createTournament({
       name: newTournament.name,
       location: newTournament.location,
       date: newTournament.date
@@ -45,7 +46,7 @@ const AdminDashboard = () => {
     setNewTournament({ name: "", location: "", date: "" });
   };
 
-  const addPlayer = () => {
+  const handleAddPlayer = () => {
     if (!newPlayer.name || !newPlayer.country || !newPlayer.gender) {
       alert("Please fill in all required fields");
       return;
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
       club: newPlayer.club
     };
 
-    addPlayer(playerData);
+    createPlayer(playerData);
 
     setNewPlayer({ name: "", country: "", gender: "", age: "", height: "", club: "" });
   };
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <Button onClick={addTournament} className="w-full">
+              <Button onClick={handleAddTournament} className="w-full">
                 Add Tournament
               </Button>
             </div>
@@ -208,7 +209,7 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <Button onClick={addPlayer} className="w-full">
+              <Button onClick={handleAddPlayer} className="w-full">
                 Add Player
               </Button>
             </div>
@@ -278,7 +279,7 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <Button onClick={addClub} className="w-full">
+              <Button onClick={handleAddClub} className="w-full">
                 Add Club
               </Button>
             </div>

@@ -1,10 +1,9 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { mockTournaments, mockPlayers, mockMatches } from '@/data/mockData';
+import { mockTournaments, mockPlayers, mockMatches, type Player } from '@/data/mockData';
 
 interface AppContextType {
   tournaments: typeof mockTournaments;
-  players: typeof mockPlayers;
+  players: Player[];
   matches: typeof mockMatches;
   updateTournament: (id: string, tournament: any) => void;
   updatePlayer: (id: string, player: any) => void;
@@ -20,7 +19,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [tournaments, setTournaments] = useState(mockTournaments);
-  const [players, setPlayers] = useState(mockPlayers);
+  const [players, setPlayers] = useState<Player[]>(mockPlayers);
   const [matches, setMatches] = useState(mockMatches);
 
   const updateTournament = (id: string, updatedTournament: any) => {
