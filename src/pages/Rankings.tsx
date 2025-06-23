@@ -1,19 +1,40 @@
 
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trophy, Medal, Award, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
+import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const Rankings = () => {
   const { players } = useAppContext();
+  const { playerClubRegistrations, clubs } = useLeagueContext();
+  const [selectedDivision, setSelectedDivision] = useState<"Overall" | "Division 1" | "Division 2">("Overall");
 
   const getPlayersByCategory = (category: string) => {
-    return players
-      .filter(player => player.category === category)
-      .sort((a, b) => a.ranking - b.ranking);
+    let filteredPlayers = players.filter(player => player.category === category);
+    
+    if (selectedDivision !== "Overall") {
+      filteredPlayers = filteredPlayers.filter(player => {
+        const playerClub = playerClubRegistrations.find(reg => reg.playerId === player.id);
+        if (!playerClub) return false;
+        
+        const club = clubs.find(c => c.id === playerClub.clubId);
+        return club?.division === selectedDivision;
+      });
+    }
+    
+    return filteredPlayers.sort((a, b) => {
+      // Sort by ranking points first, then by ranking
+      if ((b.rankingPoints || 0) !== (a.rankingPoints || 0)) {
+        return (b.rankingPoints || 0) - (a.rankingPoints || 0);
+      }
+      return a.ranking - b.ranking;
+    });
   };
 
   const PlayerRankingCard = ({ player, position }: { player: any, position: number }) => (
@@ -32,6 +53,9 @@ const Rankings = () => {
           <Badge variant="outline" className="mb-2 text-xs md:text-sm">
             Rank #{player.ranking}
           </Badge>
+          {player.rankingPoints && (
+            <p className="text-xs md:text-sm text-blue-600 font-medium">{player.rankingPoints} pts</p>
+          )}
           <p className="text-xs md:text-sm text-slate-600">{player.winRate}% Win Rate</p>
         </div>
       </div>
@@ -48,13 +72,25 @@ const Rankings = () => {
           <p className="text-base md:text-lg text-slate-600">Current BWF World Rankings by Category</p>
         </div>
 
+        <div className="mb-6">
+          <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as "Overall" | "Division 1" | "Division 2")}>
+            <SelectTrigger className="w-48 mx-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Overall">Overall Rankings</SelectItem>
+              <SelectItem value="Division 1">Division 1</SelectItem>
+              <SelectItem value="Division 2">Division 2</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs defaultValue="mens-doubles" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 text-xs md:text-sm">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 text-xs md:text-sm">
             <TabsTrigger value="mens-doubles">Men's Doubles</TabsTrigger>
             <TabsTrigger value="womens-doubles">Women's Doubles</TabsTrigger>
             <TabsTrigger value="mens-xd">Men's XD</TabsTrigger>
             <TabsTrigger value="womens-xd">Women's XD</TabsTrigger>
-            <TabsTrigger value="mixed-doubles" className="hidden md:block">Mixed Doubles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="mens-doubles">
@@ -115,22 +151,6 @@ const Rankings = () => {
               </CardHeader>
               <CardContent className="space-y-3 md:space-y-4">
                 {getPlayersByCategory("Women's Mixed").map((player, index) => (
-                  <PlayerRankingCard key={player.id} player={player} position={index + 1} />
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="mixed-doubles">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                  <Users className="h-5 w-5 md:h-6 md:w-6 text-orange-600" />
-                  Mixed Doubles Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 md:space-y-4">
-                {getPlayersByCategory("Mixed Doubles").map((player, index) => (
                   <PlayerRankingCard key={player.id} player={player} position={index + 1} />
                 ))}
               </CardContent>

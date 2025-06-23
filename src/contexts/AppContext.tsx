@@ -13,6 +13,7 @@ interface AppContextType {
   addMatch: (match: any) => void;
   deleteTournament: (id: string) => void;
   deletePlayer: (id: string) => void;
+  calculatePlayerRankingPoints: (playerId: string, category: string, won: boolean, division: "Division 1" | "Division 2") => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -43,24 +44,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addPlayer = (player: any) => {
-    const newPlayer = {
+    const categories = player.gender === "boy" 
+      ? ["Men's Doubles", "Men's Mixed"] 
+      : ["Women's Doubles", "Women's Mixed"];
+    
+    const newPlayers = categories.map((category, index) => ({
       ...player,
-      id: Date.now().toString(),
+      id: `${Date.now()}-${index}`,
+      category,
       age: parseInt(player.age) || 25,
-      ranking: players.filter(p => p.category === player.category).length + 1,
+      ranking: players.filter(p => p.category === category).length + 1,
       achievements: [],
       matchesWon: 0,
       matchesLost: 0,
       winRate: 0,
-      recentForm: ["W", "L", "W", "W", "L"]
-    };
-    setPlayers(prev => [...prev, newPlayer]);
+      recentForm: ["W", "L", "W", "W", "L"],
+      rankingPoints: 0,
+      club: player.club || ""
+    }));
+
+    setPlayers(prev => [...prev, ...newPlayers]);
+  };
+
+  const calculatePlayerRankingPoints = (playerId: string, category: string, won: boolean, division: "Division 1" | "Division 2") => {
+    if (!won) return; // No points for losing
+
+    const basePoints = division === "Division 1" ? 20 : 10; // Division 1 worth double
+    
+    setPlayers(prev => prev.map(player => {
+      if (player.id === playerId && player.category === category) {
+        return {
+          ...player,
+          rankingPoints: (player.rankingPoints || 0) + basePoints
+        };
+      }
+      return player;
+    }));
   };
 
   const parseScore = (score: string): { player1Score: number, player2Score: number } => {
     if (!score || score === "TBD") return { player1Score: 0, player2Score: 0 };
     
-    // Handle scores like "21-15, 21-18" or "21-15"
     const sets = score.split(',').map(s => s.trim());
     let player1Total = 0;
     let player2Total = 0;
@@ -80,7 +104,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const { player1Score, player2Score } = parseScore(match.score);
     const player1Won = player1Score > player2Score;
     
-    // Extract individual player names from team names (for doubles)
     const getPlayerNames = (playerString: string): string[] => {
       if (playerString.includes(' / ')) {
         return playerString.split(' / ').map(name => name.trim());
@@ -91,6 +114,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const player1Names = getPlayerNames(match.player1);
     const player2Names = getPlayerNames(match.player2);
     
+    // Determine if it's mixed or doubles based on gender
+    const isDoublesMatch = player1Names.length === 2 && player2Names.length === 2;
+    let matchCategory = "";
+    
+    if (isDoublesMatch) {
+      // For now, we'll need to determine from context - this would need more sophisticated logic
+      matchCategory = match.category || "Men's Doubles";
+    }
+
     setPlayers(prev => prev.map(player => {
       const isPlayer1Team = player1Names.includes(player.name);
       const isPlayer2Team = player2Names.includes(player.name);
@@ -119,7 +151,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     
     setMatches(prev => [...prev, newMatch]);
     
-    // Update player stats if match has a score
     if (newMatch.score && newMatch.score !== "TBD") {
       updatePlayerStats(newMatch);
     }
@@ -144,7 +175,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       addPlayer,
       addMatch,
       deleteTournament,
-      deletePlayer
+      deletePlayer,
+      calculatePlayerRankingPoints
     }}>
       {children}
     </AppContext.Provider>

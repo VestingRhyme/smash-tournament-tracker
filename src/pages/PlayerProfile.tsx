@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Trophy, TrendingUp, Target, Globe, Calendar, Users } from "lucide-react";
@@ -195,6 +194,9 @@ const PlayerProfile = () => {
                         <div>
                           <h4 className="font-medium">{playerVersion.category}</h4>
                           <p className="text-sm text-slate-600">Rank #{playerVersion.ranking}</p>
+                          {playerVersion.rankingPoints && (
+                            <p className="text-sm text-blue-600 font-medium">{playerVersion.rankingPoints} ranking points</p>
+                          )}
                         </div>
                         <Badge variant="outline">
                           {playerVersion.winRate}% WR

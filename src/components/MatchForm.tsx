@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,11 +93,10 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Men's Singles">Men's Singles</SelectItem>
-                <SelectItem value="Women's Singles">Women's Singles</SelectItem>
                 <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
                 <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
-                <SelectItem value="Mixed Doubles">Mixed Doubles</SelectItem>
+                <SelectItem value="Men's Mixed">Men's Mixed</SelectItem>
+                <SelectItem value="Women's Mixed">Women's Mixed</SelectItem>
               </SelectContent>
             </Select>
           </div>

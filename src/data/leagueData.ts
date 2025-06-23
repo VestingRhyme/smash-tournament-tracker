@@ -1,7 +1,9 @@
+
 export interface Club {
   id: string;
   name: string;
   division: "Division 1" | "Division 2";
+  country: string;
   points: number;
   gamesWon: number;
   gamesLost: number;
@@ -35,6 +37,7 @@ export const mockClubs: Club[] = [
     id: "1",
     name: "Badminton Elite",
     division: "Division 1",
+    country: "England",
     points: 15,
     gamesWon: 48,
     gamesLost: 24,
@@ -46,6 +49,7 @@ export const mockClubs: Club[] = [
     id: "2",
     name: "Shuttlecock Masters",
     division: "Division 1",
+    country: "England",
     points: 12,
     gamesWon: 44,
     gamesLost: 28,
@@ -57,6 +61,7 @@ export const mockClubs: Club[] = [
     id: "3",
     name: "Racket Warriors",
     division: "Division 2",
+    country: "England",
     points: 9,
     gamesWon: 38,
     gamesLost: 34,

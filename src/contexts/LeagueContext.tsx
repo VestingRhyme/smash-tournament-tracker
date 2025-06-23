@@ -9,7 +9,9 @@ interface LeagueContextType {
   playerClubRegistrations: PlayerClubRegistration[];
   addClub: (club: Omit<Club, 'id' | 'points' | 'gamesWon' | 'gamesLost' | 'matchesPlayed' | 'matchesWon' | 'matchesLost'>) => void;
   updateClub: (id: string, updates: Partial<Club>) => void;
+  deleteClub: (id: string) => void;
   addLeagueResult: (result: Omit<LeagueResult, 'id'>) => void;
+  addClubMatch: (match: any) => void;
   registerPlayerToClub: (playerId: string, clubId: string, playerName: string, clubName: string) => void;
   updateClubStats: (homeClub: string, awayClub: string, homeScore: number, awayScore: number) => void;
 }
@@ -41,15 +43,16 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
     ));
   };
 
+  const deleteClub = (id: string) => {
+    setClubs(prev => prev.filter(club => club.id !== id));
+  };
+
   const calculatePoints = (teamScore: number, opponentScore: number): number => {
     if (teamScore > opponentScore) {
-      // Win - check if opponent got less than 8
       return opponentScore < 8 ? 3 : 2;
     } else if (teamScore === opponentScore) {
-      // Draw
       return 2;
     } else {
-      // Loss - check if they got more than 8
       return teamScore > 8 ? 1 : 0;
     }
   };
@@ -96,6 +99,10 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
     updateClubStats(resultData.homeClub, resultData.awayClub, resultData.homeScore, resultData.awayScore);
   };
 
+  const addClubMatch = (match: any) => {
+    addLeagueResult(match);
+  };
+
   const registerPlayerToClub = (playerId: string, clubId: string, playerName: string, clubName: string) => {
     const newRegistration: PlayerClubRegistration = {
       playerId,
@@ -113,7 +120,9 @@ export const LeagueProvider = ({ children }: { children: ReactNode }) => {
       playerClubRegistrations,
       addClub,
       updateClub,
+      deleteClub,
       addLeagueResult,
+      addClubMatch,
       registerPlayerToClub,
       updateClubStats
     }}>
