@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { mockTournaments, mockPlayers, mockMatches, type Player } from '@/data/mockData';
+import { mockTournaments, mockPlayers, mockMatches } from '@/data/mockData';
+import type { Player } from '@/types/player';
 
 interface AppContextType {
   tournaments: typeof mockTournaments;
@@ -44,7 +45,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addPlayer = (player: any) => {
-    const newPlayer = {
+    const newPlayer: Player = {
       ...player,
       id: Date.now().toString(),
       age: parseInt(player.age) || 25,
@@ -58,7 +59,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       club: player.club || "",
       categories: player.gender === "boy" 
         ? ["Men's Doubles", "Men's Mixed"] 
-        : ["Women's Doubles", "Women's Mixed"]
+        : ["Women's Doubles", "Women's Mixed"],
+      category: player.gender === "boy" ? "Men's Doubles" : "Women's Doubles"
     };
 
     setPlayers(prev => [...prev, newPlayer]);
@@ -70,7 +72,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const basePoints = division === "Division 1" ? 20 : 10;
     
     setPlayers(prev => prev.map(player => {
-      if (player.id === playerId && player.categories?.includes(category)) {
+      if (player.id === playerId && (player.categories?.includes(category) || player.category === category)) {
         return {
           ...player,
           rankingPoints: (player.rankingPoints || 0) + basePoints
@@ -125,7 +127,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const isPlayer1Team = player1Names.includes(player.name);
       const isPlayer2Team = player2Names.includes(player.name);
       
-      if ((isPlayer1Team || isPlayer2Team) && player.categories?.includes(match.category)) {
+      if ((isPlayer1Team || isPlayer2Team) && (player.categories?.includes(match.category) || player.category === match.category)) {
         const won = (isPlayer1Team && team1Won) || (isPlayer2Team && !team1Won);
         
         return {

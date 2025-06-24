@@ -20,7 +20,7 @@ const PlayerAutocomplete = ({ value, onChange, placeholder, category }: PlayerAu
   // Get unique player names for the category
   const availablePlayers = [...new Set(
     players
-      .filter(p => p.categories?.includes(category))
+      .filter(p => p.categories?.includes(category) || p.category === category)
       .map(p => p.name)
   )];
 

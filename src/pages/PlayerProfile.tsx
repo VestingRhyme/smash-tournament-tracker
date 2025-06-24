@@ -15,9 +15,9 @@ const PlayerProfile = () => {
   const { players, matches } = useAppContext();
   const { playerClubRegistrations } = useLeagueContext();
   const [selectedOpponent, setSelectedOpponent] = useState<string>("");
-  
+
   const player = players.find(p => p.id === id);
-  
+
   if (!player) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -152,7 +152,7 @@ const PlayerProfile = () => {
                   <div>
                     <div className="font-semibold">Categories</div>
                     <div className="text-sm text-slate-600">
-                      {player.categories?.join(", ") || player.category}
+                      {(player.categories || [player.category]).join(", ")}
                     </div>
                   </div>
                 </div>
@@ -191,7 +191,9 @@ const PlayerProfile = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {(player.categories || [player.category]).map((category, index) => {
-                    const categoryRanking = allPlayerVersions.find(p => p.categories?.includes(category) || p.category === category);
+                    const categoryRanking = allPlayerVersions.find(p => 
+                      (p.categories?.includes(category) || p.category === category)
+                    );
                     return (
                       <div key={index} className="p-4 border rounded-lg">
                         <div className="flex justify-between items-center">
@@ -252,7 +254,7 @@ const PlayerProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2">
-                  {player.recentForm.map((result, index) => (
+                  {(player.recentForm || []).slice(0, 5).map((result, index) => (
                     <div
                       key={index}
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
