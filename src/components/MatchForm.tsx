@@ -43,7 +43,7 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     const match = {
       ...newMatch,
       id: Date.now().toString(),
-      tournament: "Current Tournament", // Default tournament name
+      tournament: "League Match", // Default tournament name
       player1: isDoublesCategory ? `${newMatch.team1Player1} / ${newMatch.team1Player2}` : newMatch.team1Player1,
       player2: isDoublesCategory ? `${newMatch.team2Player1} / ${newMatch.team2Player2}` : newMatch.team2Player1,
     };

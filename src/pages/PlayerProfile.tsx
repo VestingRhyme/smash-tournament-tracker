@@ -150,8 +150,10 @@ const PlayerProfile = () => {
                 <div className="flex items-center gap-3">
                   <Target className="h-5 w-5 text-green-600" />
                   <div>
-                    <div className="font-semibold">Category</div>
-                    <div className="text-sm text-slate-600">{player.category}</div>
+                    <div className="font-semibold">Categories</div>
+                    <div className="text-sm text-slate-600">
+                      {player.categories?.join(", ") || player.category}
+                    </div>
                   </div>
                 </div>
                 
@@ -188,22 +190,25 @@ const PlayerProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {allPlayerVersions.map((playerVersion, index) => (
-                    <div key={playerVersion.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-medium">{playerVersion.category}</h4>
-                          <p className="text-sm text-slate-600">Rank #{playerVersion.ranking}</p>
-                          {playerVersion.rankingPoints && (
-                            <p className="text-sm text-blue-600 font-medium">{playerVersion.rankingPoints} ranking points</p>
-                          )}
+                  {(player.categories || [player.category]).map((category, index) => {
+                    const categoryRanking = allPlayerVersions.find(p => p.categories?.includes(category) || p.category === category);
+                    return (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium">{category}</h4>
+                            <p className="text-sm text-slate-600">Rank #{categoryRanking?.ranking || player.ranking}</p>
+                            {player.rankingPoints && (
+                              <p className="text-sm text-blue-600 font-medium">{player.rankingPoints} ranking points</p>
+                            )}
+                          </div>
+                          <Badge variant="outline">
+                            {player.winRate}% WR
+                          </Badge>
                         </div>
-                        <Badge variant="outline">
-                          {playerVersion.winRate}% WR
-                        </Badge>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -319,7 +324,7 @@ const PlayerProfile = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Tournament</TableHead>
+                              <TableHead>Discipline</TableHead>
                               <TableHead>Score</TableHead>
                               <TableHead>Date</TableHead>
                               <TableHead>Result</TableHead>
@@ -347,7 +352,7 @@ const PlayerProfile = () => {
 
                               return (
                                 <TableRow key={match.id}>
-                                  <TableCell>{match.tournament}</TableCell>
+                                  <TableCell>{match.category}</TableCell>
                                   <TableCell className="font-mono">{match.score}</TableCell>
                                   <TableCell>{match.date || "Not set"}</TableCell>
                                   <TableCell>

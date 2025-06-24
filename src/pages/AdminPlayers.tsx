@@ -8,14 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Edit, Trash, Users, ArrowLeft } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
-import { useLeagueContext } from "@/contexts/LeagueContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import ClubAutocomplete from "@/components/ClubAutocomplete";
 
 const AdminPlayers = () => {
   const navigate = useNavigate();
   const { players, addPlayer: createPlayer, deletePlayer } = useAppContext();
-  const { clubs } = useLeagueContext();
   const [newPlayer, setNewPlayer] = useState({ name: "", country: "", gender: "", age: "", height: "", club: "" });
 
   const handleAddPlayer = () => {
@@ -36,6 +35,18 @@ const AdminPlayers = () => {
     createPlayer(playerData);
     setNewPlayer({ name: "", country: "", gender: "", age: "", height: "", club: "" });
   };
+
+  // Group players by name to avoid duplicates in display
+  const uniquePlayers = players.reduce((acc, player) => {
+    const existing = acc.find(p => p.name === player.name);
+    if (!existing) {
+      acc.push({
+        ...player,
+        categories: player.categories || [player.category]
+      });
+    }
+    return acc;
+  }, [] as any[]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -124,19 +135,11 @@ const AdminPlayers = () => {
                 </div>
                 <div>
                   <Label htmlFor="playerClub" className="text-sm font-medium">Club</Label>
-                  <Select value={newPlayer.club} onValueChange={(value) => setNewPlayer({ ...newPlayer, club: value })}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select club" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="no-club">No Club</SelectItem>
-                      {clubs.map((club) => (
-                        <SelectItem key={club.id} value={club.name}>
-                          {club.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ClubAutocomplete
+                    value={newPlayer.club}
+                    onChange={(value) => setNewPlayer({ ...newPlayer, club: value })}
+                    placeholder="Start typing club name..."
+                  />
                 </div>
                 <Button onClick={handleAddPlayer} className="w-full bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
@@ -151,7 +154,7 @@ const AdminPlayers = () => {
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                All Players ({players.length})
+                All Players ({uniquePlayers.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -160,26 +163,28 @@ const AdminPlayers = () => {
                   <TableRow>
                     <TableHead className="px-4">Name</TableHead>
                     <TableHead className="px-4">Country</TableHead>
-                    <TableHead className="px-4">Category</TableHead>
+                    <TableHead className="px-4">Categories</TableHead>
                     <TableHead className="px-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {players.length === 0 ? (
+                  {uniquePlayers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-6 text-gray-500">
                         No players found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    players.map((player) => (
+                    uniquePlayers.map((player) => (
                       <TableRow key={player.id} className="hover:bg-gray-50">
                         <TableCell className="px-4 py-3">
                           <div className="font-medium text-sm">{player.name}</div>
                           <div className="text-xs text-gray-500">{player.club || "No Club"}</div>
                         </TableCell>
                         <TableCell className="px-4 py-3 text-sm">{player.country}</TableCell>
-                        <TableCell className="px-4 py-3 text-sm">{player.category}</TableCell>
+                        <TableCell className="px-4 py-3 text-sm">
+                          {player.categories?.join(", ") || player.category}
+                        </TableCell>
                         <TableCell className="px-4 py-3">
                           <div className="flex gap-1">
                             <Button 
