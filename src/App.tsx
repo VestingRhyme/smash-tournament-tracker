@@ -10,6 +10,10 @@ import Index from "./pages/Index";
 import TournamentDetails from "./pages/TournamentDetails";
 import PlayerProfile from "./pages/PlayerProfile";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminPlayers from "./pages/AdminPlayers";
+import AdminTournaments from "./pages/AdminTournaments";
+import AdminFixtures from "./pages/AdminFixtures";
+import AdminMatches from "./pages/AdminMatches";
 import EditTournament from "./pages/EditTournament";
 import EditPlayer from "./pages/EditPlayer";
 import Rankings from "./pages/Rankings";
@@ -34,6 +38,10 @@ const App = () => (
               <Route path="/player/:id" element={<PlayerProfile />} />
               <Route path="/club/:id" element={<ClubProfile />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/players" element={<AdminPlayers />} />
+              <Route path="/admin/tournaments" element={<AdminTournaments />} />
+              <Route path="/admin/fixtures" element={<AdminFixtures />} />
+              <Route path="/admin/matches" element={<AdminMatches />} />
               <Route path="/admin/tournament/edit/:id" element={<EditTournament />} />
               <Route path="/admin/player/edit/:id" element={<EditPlayer />} />
               <Route path="/rankings" element={<Rankings />} />

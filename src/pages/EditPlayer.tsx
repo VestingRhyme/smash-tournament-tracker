@@ -93,12 +93,12 @@ const EditPlayer = () => {
 
             <div>
               <Label htmlFor="club">Club</Label>
-              <Select value={player.club || ""} onValueChange={(value) => setPlayer({...player, club: value})}>
+              <Select value={player.club || "no-club"} onValueChange={(value) => setPlayer({...player, club: value === "no-club" ? "" : value})}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select a club" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Club</SelectItem>
+                  <SelectItem value="no-club">No Club</SelectItem>
                   {clubs.map((club) => (
                     <SelectItem key={club.id} value={club.name}>
                       {club.name}
