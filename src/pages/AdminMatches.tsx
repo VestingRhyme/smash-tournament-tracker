@@ -12,6 +12,25 @@ const AdminMatches = () => {
   const navigate = useNavigate();
   const { matches, addMatch } = useAppContext();
 
+  const getMatchResult = (match: any) => {
+    if (!match.score || match.score === "TBD") return null;
+    
+    const sets = match.score.split(',').map((s: string) => s.trim());
+    let team1SetsWon = 0;
+    let team2SetsWon = 0;
+    
+    sets.forEach((set: string) => {
+      const [p1, p2] = set.split('-').map((s: string) => parseInt(s.trim()) || 0);
+      if (p1 > p2) {
+        team1SetsWon++;
+      } else if (p2 > p1) {
+        team2SetsWon++;
+      }
+    });
+    
+    return team1SetsWon > team2SetsWon ? 'Team 1' : 'Team 2';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navbar />
@@ -58,32 +77,47 @@ const AdminMatches = () => {
                     <TableHead className="px-4">Match</TableHead>
                     <TableHead className="px-4">Category</TableHead>
                     <TableHead className="px-4">Score</TableHead>
+                    <TableHead className="px-4">Winner</TableHead>
                     <TableHead className="px-4">Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {matches.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                      <TableCell colSpan={5} className="text-center py-6 text-gray-500">
                         No matches found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    matches.map((match) => (
-                      <TableRow key={match.id} className="hover:bg-gray-50">
-                        <TableCell className="px-4 py-3">
-                          <div className="font-medium text-sm">
-                            {match.player1} vs {match.player2}
-                          </div>
-                          <div className="text-xs text-gray-500">{match.tournament}</div>
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm">{match.category}</TableCell>
-                        <TableCell className="px-4 py-3 text-sm font-mono">{match.score}</TableCell>
-                        <TableCell className="px-4 py-3 text-sm">
-                          {new Date(match.date).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    matches.map((match) => {
+                      const winner = getMatchResult(match);
+                      return (
+                        <TableRow key={match.id} className="hover:bg-gray-50">
+                          <TableCell className="px-4 py-3">
+                            <div className="font-medium text-sm">
+                              {match.player1} vs {match.player2}
+                            </div>
+                            <div className="text-xs text-gray-500">{match.tournament}</div>
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-sm">{match.category}</TableCell>
+                          <TableCell className="px-4 py-3 text-sm font-mono">{match.score}</TableCell>
+                          <TableCell className="px-4 py-3 text-sm">
+                            {winner ? (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                winner === 'Team 1' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {winner === 'Team 1' ? match.player1.split(' vs ')[0] : match.player2.split(' vs ')[0]}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">TBD</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-sm">
+                            {new Date(match.date).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>

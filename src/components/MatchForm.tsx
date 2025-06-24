@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import PlayerAutocomplete from "./PlayerAutocomplete";
 
 interface MatchFormProps {
   onAddMatch: (match: any) => void;
@@ -12,7 +14,6 @@ interface MatchFormProps {
 
 const MatchForm = ({ onAddMatch }: MatchFormProps) => {
   const [newMatch, setNewMatch] = useState({
-    tournament: "",
     team1Player1: "",
     team1Player2: "",
     team2Player1: "",
@@ -29,12 +30,11 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
   const isDoublesCategory = newMatch.category.includes("Doubles") || newMatch.category.includes("Mixed");
 
   const handleSubmit = () => {
-    if (!newMatch.tournament || !newMatch.team1Player1 || !newMatch.team2Player1 || !newMatch.category) {
+    if (!newMatch.team1Player1 || !newMatch.team2Player1 || !newMatch.category) {
       alert("Please fill in all required fields");
       return;
     }
 
-    // For doubles, check if both players are filled
     if (isDoublesCategory && (!newMatch.team1Player2 || !newMatch.team2Player2)) {
       alert("Please fill in all players for doubles match");
       return;
@@ -43,6 +43,7 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     const match = {
       ...newMatch,
       id: Date.now().toString(),
+      tournament: "Current Tournament", // Default tournament name
       player1: isDoublesCategory ? `${newMatch.team1Player1} / ${newMatch.team1Player2}` : newMatch.team1Player1,
       player2: isDoublesCategory ? `${newMatch.team2Player1} / ${newMatch.team2Player2}` : newMatch.team2Player1,
     };
@@ -51,7 +52,6 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
     
     // Reset form
     setNewMatch({
-      tournament: "",
       team1Player1: "",
       team1Player2: "",
       team2Player1: "",
@@ -75,31 +75,19 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="tournament">Tournament *</Label>
-            <Input 
-              id="tournament"
-              value={newMatch.tournament}
-              onChange={(e) => setNewMatch({...newMatch, tournament: e.target.value})}
-              placeholder="Tournament name"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="category">Category *</Label>
-            <Select value={newMatch.category} onValueChange={(value) => setNewMatch({...newMatch, category: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
-                <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
-                <SelectItem value="Men's Mixed">Men's Mixed</SelectItem>
-                <SelectItem value="Women's Mixed">Women's Mixed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <Label htmlFor="category">Category *</Label>
+          <Select value={newMatch.category} onValueChange={(value) => setNewMatch({...newMatch, category: value})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Men's Doubles">Men's Doubles</SelectItem>
+              <SelectItem value="Women's Doubles">Women's Doubles</SelectItem>
+              <SelectItem value="Men's Mixed">Men's Mixed</SelectItem>
+              <SelectItem value="Women's Mixed">Women's Mixed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Team 1 */}
@@ -108,22 +96,22 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
           <div className={`grid ${isDoublesCategory ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
             <div>
               <Label htmlFor="team1Player1">Player 1 *</Label>
-              <Input 
-                id="team1Player1"
+              <PlayerAutocomplete
                 value={newMatch.team1Player1}
-                onChange={(e) => setNewMatch({...newMatch, team1Player1: e.target.value})}
+                onChange={(value) => setNewMatch({...newMatch, team1Player1: value})}
                 placeholder="First player name"
+                category={newMatch.category}
               />
             </div>
             
             {isDoublesCategory && (
               <div>
                 <Label htmlFor="team1Player2">Player 2 *</Label>
-                <Input 
-                  id="team1Player2"
+                <PlayerAutocomplete
                   value={newMatch.team1Player2}
-                  onChange={(e) => setNewMatch({...newMatch, team1Player2: e.target.value})}
+                  onChange={(value) => setNewMatch({...newMatch, team1Player2: value})}
                   placeholder="Second player name"
+                  category={newMatch.category}
                 />
               </div>
             )}
@@ -136,22 +124,22 @@ const MatchForm = ({ onAddMatch }: MatchFormProps) => {
           <div className={`grid ${isDoublesCategory ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
             <div>
               <Label htmlFor="team2Player1">Player 1 *</Label>
-              <Input 
-                id="team2Player1"
+              <PlayerAutocomplete
                 value={newMatch.team2Player1}
-                onChange={(e) => setNewMatch({...newMatch, team2Player1: e.target.value})}
+                onChange={(value) => setNewMatch({...newMatch, team2Player1: value})}
                 placeholder="First player name"
+                category={newMatch.category}
               />
             </div>
             
             {isDoublesCategory && (
               <div>
                 <Label htmlFor="team2Player2">Player 2 *</Label>
-                <Input 
-                  id="team2Player2"
+                <PlayerAutocomplete
                   value={newMatch.team2Player2}
-                  onChange={(e) => setNewMatch({...newMatch, team2Player2: e.target.value})}
+                  onChange={(value) => setNewMatch({...newMatch, team2Player2: value})}
                   placeholder="Second player name"
+                  category={newMatch.category}
                 />
               </div>
             )}

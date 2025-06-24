@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { mockTournaments, mockPlayers, mockMatches, type Player } from '@/data/mockData';
 
@@ -66,9 +67,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const calculatePlayerRankingPoints = (playerId: string, category: string, won: boolean, division: "Division 1" | "Division 2") => {
-    if (!won) return; // No points for losing
+    if (!won) return;
 
-    const basePoints = division === "Division 1" ? 20 : 10; // Division 1 worth double
+    const basePoints = division === "Division 1" ? 20 : 10;
     
     setPlayers(prev => prev.map(player => {
       if (player.id === playerId && player.category === category) {
@@ -81,10 +82,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const parseScore = (score: string): { player1Score: number, player2Score: number } => {
-    if (!score || score === "TBD") return { player1Score: 0, player2Score: 0 };
+  const parseScore = (score: string): { team1Won: boolean, player1Score: number, player2Score: number } => {
+    if (!score || score === "TBD") return { team1Won: false, player1Score: 0, player2Score: 0 };
     
     const sets = score.split(',').map(s => s.trim());
+    let team1SetsWon = 0;
+    let team2SetsWon = 0;
     let player1Total = 0;
     let player2Total = 0;
     
@@ -92,16 +95,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
       player1Total += p1;
       player2Total += p2;
+      
+      if (p1 > p2) {
+        team1SetsWon++;
+      } else if (p2 > p1) {
+        team2SetsWon++;
+      }
     });
     
-    return { player1Score: player1Total, player2Score: player2Total };
+    const team1Won = team1SetsWon > team2SetsWon;
+    
+    return { team1Won, player1Score: player1Total, player2Score: player2Total };
   };
 
   const updatePlayerStats = (match: any) => {
     if (!match.score || match.score === "TBD") return;
     
-    const { player1Score, player2Score } = parseScore(match.score);
-    const player1Won = player1Score > player2Score;
+    const { team1Won } = parseScore(match.score);
     
     const getPlayerNames = (playerString: string): string[] => {
       if (playerString.includes(' / ')) {
@@ -112,22 +122,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     
     const player1Names = getPlayerNames(match.player1);
     const player2Names = getPlayerNames(match.player2);
-    
-    // Determine if it's mixed or doubles based on gender
-    const isDoublesMatch = player1Names.length === 2 && player2Names.length === 2;
-    let matchCategory = "";
-    
-    if (isDoublesMatch) {
-      // For now, we'll need to determine from context - this would need more sophisticated logic
-      matchCategory = match.category || "Men's Doubles";
-    }
 
     setPlayers(prev => prev.map(player => {
       const isPlayer1Team = player1Names.includes(player.name);
       const isPlayer2Team = player2Names.includes(player.name);
       
-      if (isPlayer1Team || isPlayer2Team) {
-        const won = (isPlayer1Team && player1Won) || (isPlayer2Team && !player1Won);
+      if ((isPlayer1Team || isPlayer2Team) && player.category === match.category) {
+        const won = (isPlayer1Team && team1Won) || (isPlayer2Team && !team1Won);
         
         return {
           ...player,
