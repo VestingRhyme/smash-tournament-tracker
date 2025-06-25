@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { mockClubs, mockFixtures, mockResults, mockPlayerClubRegistrations } from '@/data/leagueData';
 
@@ -17,6 +18,7 @@ export interface Club {
   description?: string;
   wins?: number;
   losses?: number;
+  teams?: string[];
 }
 
 export interface Fixture {

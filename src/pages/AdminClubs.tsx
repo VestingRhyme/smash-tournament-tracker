@@ -21,7 +21,6 @@ const AdminClubs = () => {
   const { clubs, addClub, deleteClub } = useLeagueContext();
   const [newClub, setNewClub] = useState({
     name: "",
-    country: "",
     description: "",
     teams: [{ name: "A Team", division: "Division 1" as "Division 1" | "Division 2" }]
   });
@@ -31,7 +30,7 @@ const AdminClubs = () => {
     addClub({
       name: newClub.name,
       division: newClub.teams[0]?.division || "Division 1",
-      country: newClub.country,
+      country: "England", // Default country
       description: newClub.description,
       teams: newClub.teams.map(t => t.name),
       points: 0,
@@ -43,7 +42,6 @@ const AdminClubs = () => {
     });
     setNewClub({
       name: "",
-      country: "",
       description: "",
       teams: [{ name: "A Team", division: "Division 1" }]
     });
@@ -89,20 +87,12 @@ const AdminClubs = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAddClub} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Club Name"
-                  value={newClub.name}
-                  onChange={(e) => setNewClub({ ...newClub, name: e.target.value })}
-                  required
-                />
-                <Input
-                  placeholder="Country"
-                  value={newClub.country}
-                  onChange={(e) => setNewClub({ ...newClub, country: e.target.value })}
-                  required
-                />
-              </div>
+              <Input
+                placeholder="Club Name"
+                value={newClub.name}
+                onChange={(e) => setNewClub({ ...newClub, name: e.target.value })}
+                required
+              />
               
               <Textarea
                 placeholder="Club Description"
@@ -171,7 +161,6 @@ const AdminClubs = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Country</TableHead>
                   <TableHead>Teams</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Actions</TableHead>
@@ -185,7 +174,6 @@ const AdminClubs = () => {
                         {club.name}
                       </Link>
                     </TableCell>
-                    <TableCell>{club.country}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
                         {(club.teams || ['A Team']).map((team, index) => (

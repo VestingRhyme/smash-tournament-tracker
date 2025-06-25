@@ -59,7 +59,7 @@ const ClubProfile = () => {
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="flex items-center gap-3">
                   <Trophy className="h-5 w-5 text-yellow-600" />
                   <div>
@@ -83,27 +83,7 @@ const ClubProfile = () => {
                     <div className="text-sm text-slate-600">{club.matchesPlayed || 0}</div>
                   </div>
                 </div>
-                
-                {club.location && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-red-600" />
-                    <div>
-                      <div className="font-semibold">Location</div>
-                      <div className="text-sm text-slate-600">{club.location}</div>
-                    </div>
-                  </div>
-                )}
               </div>
-
-              {club.founded && (
-                <div className="mt-4 flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <div className="font-semibold">Founded</div>
-                    <div className="text-sm text-slate-600">{club.founded}</div>
-                  </div>
-                </div>
-              )}
 
               {club.description && (
                 <div className="mt-4">
@@ -125,33 +105,20 @@ const ClubProfile = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
-            {/* Club Statistics */}
+            {/* Club Overview */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="h-5 w-5" />
-                  Club Statistics
+                  Club Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{club.matchesWon || 0}</div>
-                    <div className="text-sm text-slate-600">Matches Won</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-red-600 mb-2">{club.matchesLost || 0}</div>
-                    <div className="text-sm text-slate-600">Matches Lost</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{club.gamesWon || 0}</div>
-                    <div className="text-sm text-slate-600">Games Won</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600 mb-2">{club.gamesLost || 0}</div>
-                    <div className="text-sm text-slate-600">Games Lost</div>
-                  </div>
-                </div>
+                {club.description ? (
+                  <p className="text-slate-700 leading-relaxed">{club.description}</p>
+                ) : (
+                  <p className="text-slate-500 italic">No overview available for this club.</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -220,16 +187,13 @@ const ClubProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-2">A Team</h4>
-                    <p className="text-sm text-slate-600">Division: {club.division}</p>
-                    <p className="text-sm text-slate-600">Players: {Math.ceil(clubPlayerDetails.length / 2)}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-2">B Team</h4>
-                    <p className="text-sm text-slate-600">Division: {club.division}</p>
-                    <p className="text-sm text-slate-600">Players: {Math.floor(clubPlayerDetails.length / 2)}</p>
-                  </div>
+                  {(club.teams || ['A Team', 'B Team']).map((team, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">{team}</h4>
+                      <p className="text-sm text-slate-600">Division: {club.division}</p>
+                      <p className="text-sm text-slate-600">Players: {Math.ceil(clubPlayerDetails.length / (club.teams?.length || 2))}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -251,8 +215,8 @@ const ClubProfile = () => {
                         <TableRow>
                           <TableHead>Name</TableHead>
                           <TableHead>Age</TableHead>
-                          <TableHead>Categories</TableHead>
-                          <TableHead>Ranking</TableHead>
+                          <TableHead>Wins</TableHead>
+                          <TableHead>Losses</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -264,16 +228,8 @@ const ClubProfile = () => {
                               </Link>
                             </TableCell>
                             <TableCell>{player.age}</TableCell>
-                            <TableCell>
-                              <div className="flex gap-1 flex-wrap">
-                                {(player.categories || []).map((cat, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {cat}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>#{player.ranking}</TableCell>
+                            <TableCell>{player.matchesWon || 0}</TableCell>
+                            <TableCell>{player.matchesLost || 0}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
