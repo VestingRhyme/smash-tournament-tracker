@@ -31,13 +31,13 @@ const ClubProfile = () => {
     );
   }
 
-  const clubPlayers = playerClubRegistrations.filter(reg => reg.clubId === club.id);
-  const clubResults = leagueResults.filter(result => 
+  const clubPlayers = playerClubRegistrations?.filter(reg => reg.clubId === club.id) || [];
+  const clubResults = leagueResults?.filter(result => 
     result.homeClub === club.name || result.awayClub === club.name
-  );
+  ) || [];
 
   // Get players who are members of this club
-  const clubPlayerDetails = players.filter(player => player.club === club.name);
+  const clubPlayerDetails = players?.filter(player => player.club === club.name) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -64,7 +64,7 @@ const ClubProfile = () => {
                   <Trophy className="h-5 w-5 text-yellow-600" />
                   <div>
                     <div className="font-semibold">Points</div>
-                    <div className="text-sm text-slate-600">{club.points}</div>
+                    <div className="text-sm text-slate-600">{club.points || 0}</div>
                   </div>
                 </div>
                 
@@ -80,7 +80,7 @@ const ClubProfile = () => {
                   <Calendar className="h-5 w-5 text-blue-600" />
                   <div>
                     <div className="font-semibold">Matches Played</div>
-                    <div className="text-sm text-slate-600">{club.matchesPlayed}</div>
+                    <div className="text-sm text-slate-600">{club.matchesPlayed || 0}</div>
                   </div>
                 </div>
                 
@@ -136,19 +136,19 @@ const ClubProfile = () => {
               <CardContent>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{club.matchesWon}</div>
+                    <div className="text-3xl font-bold text-green-600 mb-2">{club.matchesWon || 0}</div>
                     <div className="text-sm text-slate-600">Matches Won</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-red-600 mb-2">{club.matchesLost}</div>
+                    <div className="text-3xl font-bold text-red-600 mb-2">{club.matchesLost || 0}</div>
                     <div className="text-sm text-slate-600">Matches Lost</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{club.gamesWon}</div>
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{club.gamesWon || 0}</div>
                     <div className="text-sm text-slate-600">Games Won</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600 mb-2">{club.gamesLost}</div>
+                    <div className="text-3xl font-bold text-orange-600 mb-2">{club.gamesLost || 0}</div>
                     <div className="text-sm text-slate-600">Games Lost</div>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ const ClubProfile = () => {
                             <TableCell>{player.age}</TableCell>
                             <TableCell>
                               <div className="flex gap-1 flex-wrap">
-                                {player.categories.map((cat, index) => (
+                                {(player.categories || []).map((cat, index) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     {cat}
                                   </Badge>

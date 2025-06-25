@@ -117,7 +117,7 @@ const AdminPlayers = () => {
                     <TableCell>{player.country}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {player.categories.map((cat, index) => (
+                        {(player.categories || []).map((cat, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {cat}
                           </Badge>

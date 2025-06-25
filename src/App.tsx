@@ -12,6 +12,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPlayers from "./pages/AdminPlayers";
 import AdminTournaments from "./pages/AdminTournaments";
+import AdminClubs from "./pages/AdminClubs";
 import AdminFixtures from "./pages/AdminFixtures";
 import AdminMatches from "./pages/AdminMatches";
 import EditTournament from "./pages/EditTournament";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/players" element={<AdminPlayers />} />
               <Route path="/admin/tournaments" element={<AdminTournaments />} />
+              <Route path="/admin/clubs" element={<AdminClubs />} />
               <Route path="/admin/fixtures" element={<AdminFixtures />} />
               <Route path="/admin/matches" element={<AdminMatches />} />
               <Route path="/admin/tournament/edit/:id" element={<EditTournament />} />
