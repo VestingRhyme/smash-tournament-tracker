@@ -12,23 +12,28 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 
+interface Team {
+  name: string;
+  division: "Division 1" | "Division 2";
+}
+
 const AdminClubs = () => {
   const { clubs, addClub, deleteClub } = useLeagueContext();
   const [newClub, setNewClub] = useState({
     name: "",
-    division: "Division 1" as "Division 1" | "Division 2",
     country: "",
-    location: "",
-    founded: "",
     description: "",
-    teams: ["A Team"]
+    teams: [{ name: "A Team", division: "Division 1" as "Division 1" | "Division 2" }]
   });
-  const [editingClub, setEditingClub] = useState<any>(null);
 
   const handleAddClub = (e: React.FormEvent) => {
     e.preventDefault();
     addClub({
-      ...newClub,
+      name: newClub.name,
+      division: newClub.teams[0]?.division || "Division 1",
+      country: newClub.country,
+      description: newClub.description,
+      teams: newClub.teams.map(t => t.name),
       points: 0,
       gamesWon: 0,
       gamesLost: 0,
@@ -38,20 +43,17 @@ const AdminClubs = () => {
     });
     setNewClub({
       name: "",
-      division: "Division 1",
       country: "",
-      location: "",
-      founded: "",
       description: "",
-      teams: ["A Team"]
+      teams: [{ name: "A Team", division: "Division 1" }]
     });
   };
 
   const addTeam = () => {
-    const teamLetter = String.fromCharCode(65 + newClub.teams.length); // A, B, C, etc.
+    const teamLetter = String.fromCharCode(65 + newClub.teams.length);
     setNewClub({
       ...newClub,
-      teams: [...newClub.teams, `${teamLetter} Team`]
+      teams: [...newClub.teams, { name: `${teamLetter} Team`, division: "Division 1" }]
     });
   };
 
@@ -62,6 +64,12 @@ const AdminClubs = () => {
         teams: newClub.teams.filter((_, i) => i !== index)
       });
     }
+  };
+
+  const updateTeam = (index: number, field: keyof Team, value: string) => {
+    const updatedTeams = [...newClub.teams];
+    updatedTeams[index] = { ...updatedTeams[index], [field]: value };
+    setNewClub({ ...newClub, teams: updatedTeams });
   };
 
   return (
@@ -88,30 +96,11 @@ const AdminClubs = () => {
                   onChange={(e) => setNewClub({ ...newClub, name: e.target.value })}
                   required
                 />
-                <Select value={newClub.division} onValueChange={(value: "Division 1" | "Division 2") => setNewClub({ ...newClub, division: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Division" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Division 1">Division 1</SelectItem>
-                    <SelectItem value="Division 2">Division 2</SelectItem>
-                  </SelectContent>
-                </Select>
                 <Input
                   placeholder="Country"
                   value={newClub.country}
                   onChange={(e) => setNewClub({ ...newClub, country: e.target.value })}
                   required
-                />
-                <Input
-                  placeholder="Location"
-                  value={newClub.location}
-                  onChange={(e) => setNewClub({ ...newClub, location: e.target.value })}
-                />
-                <Input
-                  placeholder="Founded Year"
-                  value={newClub.founded}
-                  onChange={(e) => setNewClub({ ...newClub, founded: e.target.value })}
                 />
               </div>
               
@@ -135,14 +124,23 @@ const AdminClubs = () => {
                   {newClub.teams.map((team, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Input
-                        value={team}
-                        onChange={(e) => {
-                          const updatedTeams = [...newClub.teams];
-                          updatedTeams[index] = e.target.value;
-                          setNewClub({ ...newClub, teams: updatedTeams });
-                        }}
+                        value={team.name}
+                        onChange={(e) => updateTeam(index, 'name', e.target.value)}
                         placeholder="Team Name"
+                        className="flex-1"
                       />
+                      <Select 
+                        value={team.division} 
+                        onValueChange={(value: "Division 1" | "Division 2") => updateTeam(index, 'division', value)}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Division 1">Division 1</SelectItem>
+                          <SelectItem value="Division 2">Division 2</SelectItem>
+                        </SelectContent>
+                      </Select>
                       {newClub.teams.length > 1 && (
                         <Button
                           type="button"
@@ -173,10 +171,9 @@ const AdminClubs = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Division</TableHead>
                   <TableHead>Country</TableHead>
+                  <TableHead>Teams</TableHead>
                   <TableHead>Points</TableHead>
-                  <TableHead>Location</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -188,12 +185,17 @@ const AdminClubs = () => {
                         {club.name}
                       </Link>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{club.division}</Badge>
-                    </TableCell>
                     <TableCell>{club.country}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {(club.teams || ['A Team']).map((team, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {team}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
                     <TableCell>{club.points}</TableCell>
-                    <TableCell>{club.location || "Not specified"}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">

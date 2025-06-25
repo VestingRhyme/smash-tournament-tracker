@@ -127,7 +127,7 @@ const AdminPlayers = () => {
                     <TableCell>{player.club || "No club"}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Link to={`/admin/edit-player/${player.id}`}>
+                        <Link to={`/admin/player/edit/${player.id}`}>
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>

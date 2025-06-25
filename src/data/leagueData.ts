@@ -10,11 +10,10 @@ export interface Club {
   matchesPlayed: number;
   matchesWon: number;
   matchesLost: number;
-  location?: string;
-  founded?: string;
   description?: string;
   wins?: number;
   losses?: number;
+  teams?: string[];
 }
 
 export interface LeagueResult {
@@ -59,7 +58,8 @@ export const mockClubs: Club[] = [
     matchesWon: 3,
     matchesLost: 0,
     wins: 3,
-    losses: 0
+    losses: 0,
+    teams: ["A Team", "B Team"]
   },
   {
     id: "2",
@@ -73,7 +73,8 @@ export const mockClubs: Club[] = [
     matchesWon: 2,
     matchesLost: 1,
     wins: 2,
-    losses: 1
+    losses: 1,
+    teams: ["A Team"]
   },
   {
     id: "3",
@@ -87,15 +88,16 @@ export const mockClubs: Club[] = [
     matchesWon: 1,
     matchesLost: 2,
     wins: 1,
-    losses: 2
+    losses: 2,
+    teams: ["A Team", "B Team"]
   }
 ];
 
 export const mockLeagueResults: LeagueResult[] = [
   {
     id: "1",
-    homeClub: "Badminton Elite",
-    awayClub: "Shuttlecock Masters",
+    homeClub: "Badminton Elite A",
+    awayClub: "Shuttlecock Masters A",
     homeScore: 16,
     awayScore: 8,
     date: "2024-03-15",
@@ -106,8 +108,8 @@ export const mockLeagueResults: LeagueResult[] = [
 export const mockFixtures: Fixture[] = [
   {
     id: "1",
-    homeClub: "Badminton Elite",
-    awayClub: "Racket Warriors",
+    homeClub: "Badminton Elite A",
+    awayClub: "Racket Warriors A",
     date: "2024-04-15",
     location: "Community Sports Centre",
     division: "Division 1",
@@ -115,8 +117,8 @@ export const mockFixtures: Fixture[] = [
   },
   {
     id: "2",
-    homeClub: "Shuttlecock Masters",
-    awayClub: "Racket Warriors",
+    homeClub: "Shuttlecock Masters A",
+    awayClub: "Racket Warriors B",
     date: "2024-04-22",
     location: "Municipal Sports Hall",
     division: "Division 1",
