@@ -65,12 +65,12 @@ const PlayerProfile = () => {
       const players = playerString.split(' / ');
       return (
         <div>
-          <div>{players[0]}</div>
+          <div className="font-medium">{players[0]}</div>
           <div className="text-sm text-gray-500">{players[1]}</div>
         </div>
       );
     }
-    return playerString;
+    return <div className="font-medium">{playerString}</div>;
   };
 
   const getHeadToHeadStats = (player1Name: string, player2Name: string) => {
@@ -326,7 +326,8 @@ const PlayerProfile = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Discipline</TableHead>
+                              <TableHead>Team 1</TableHead>
+                              <TableHead>Team 2</TableHead>
                               <TableHead>Score</TableHead>
                               <TableHead>Date</TableHead>
                               <TableHead>Result</TableHead>
@@ -354,7 +355,8 @@ const PlayerProfile = () => {
 
                               return (
                                 <TableRow key={match.id}>
-                                  <TableCell>{match.category}</TableCell>
+                                  <TableCell>{formatPlayerNames(match.player1)}</TableCell>
+                                  <TableCell>{formatPlayerNames(match.player2)}</TableCell>
                                   <TableCell className="font-mono">{match.score}</TableCell>
                                   <TableCell>{match.date || "Not set"}</TableCell>
                                   <TableCell>
@@ -390,24 +392,21 @@ const PlayerProfile = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Opponent</TableHead>
-                        <TableHead>Tournament</TableHead>
+                        <TableHead>Team 1</TableHead>
+                        <TableHead>Team 2</TableHead>
                         <TableHead>Score</TableHead>
                         <TableHead>Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {playerMatches.map((match) => {
-                        const opponent = match.player1.includes(player.name) ? match.player2 : match.player1;
-                        return (
-                          <TableRow key={match.id}>
-                            <TableCell className="font-medium">{formatPlayerNames(opponent)}</TableCell>
-                            <TableCell>{match.tournament}</TableCell>
-                            <TableCell>{match.score || "TBD"}</TableCell>
-                            <TableCell>{match.date || "Not set"}</TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {playerMatches.map((match) => (
+                        <TableRow key={match.id}>
+                          <TableCell>{formatPlayerNames(match.player1)}</TableCell>
+                          <TableCell>{formatPlayerNames(match.player2)}</TableCell>
+                          <TableCell>{match.score || "TBD"}</TableCell>
+                          <TableCell>{match.date || "Not set"}</TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </CardContent>

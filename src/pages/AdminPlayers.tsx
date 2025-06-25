@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
 import ClubAutocomplete from "@/components/ClubAutocomplete";
+import TeamAutocomplete from "@/components/TeamAutocomplete";
 
 const AdminPlayers = () => {
   const { players, addPlayer, deletePlayer } = useAppContext();
@@ -20,13 +20,17 @@ const AdminPlayers = () => {
     country: "",
     height: "",
     gender: "",
-    club: ""
+    club: "",
+    team: ""
   });
 
   const handleAddPlayer = (e: React.FormEvent) => {
     e.preventDefault();
-    addPlayer(newPlayer);
-    setNewPlayer({ name: "", age: "", country: "", height: "", gender: "", club: "" });
+    addPlayer({
+      ...newPlayer,
+      club: newPlayer.team || newPlayer.club // Use team if selected, otherwise use club
+    });
+    setNewPlayer({ name: "", age: "", country: "", height: "", gender: "", club: "", team: "" });
   };
 
   return (
@@ -82,8 +86,14 @@ const AdminPlayers = () => {
               </Select>
               <ClubAutocomplete
                 value={newPlayer.club}
-                onChange={(value) => setNewPlayer({ ...newPlayer, club: value })}
+                onChange={(value) => setNewPlayer({ ...newPlayer, club: value, team: "" })}
                 placeholder="Select Club"
+              />
+              <TeamAutocomplete
+                value={newPlayer.team}
+                onChange={(value) => setNewPlayer({ ...newPlayer, team: value })}
+                placeholder="Select Team"
+                selectedClub={newPlayer.club}
               />
               <div className="md:col-span-2">
                 <Button type="submit" className="w-full">Add Player</Button>

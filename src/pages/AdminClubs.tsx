@@ -27,19 +27,28 @@ const AdminClubs = () => {
 
   const handleAddClub = (e: React.FormEvent) => {
     e.preventDefault();
-    addClub({
-      name: newClub.name,
-      division: newClub.teams[0]?.division || "Division 1",
-      country: "England", // Default country
-      description: newClub.description,
-      teams: newClub.teams.map(t => t.name),
-      points: 0,
-      gamesWon: 0,
-      gamesLost: 0,
-      matchesPlayed: 0,
-      matchesWon: 0,
-      matchesLost: 0
+    
+    // Create separate club entries for each team with their respective divisions
+    newClub.teams.forEach((team, index) => {
+      const teamName = newClub.teams.length > 1 ? 
+        `${newClub.name} ${String.fromCharCode(65 + index)}` : 
+        newClub.name;
+      
+      addClub({
+        name: teamName,
+        division: team.division, // Use the team's selected division
+        country: "England",
+        description: newClub.description,
+        teams: [team.name],
+        points: 0,
+        gamesWon: 0,
+        gamesLost: 0,
+        matchesPlayed: 0,
+        matchesWon: 0,
+        matchesLost: 0
+      });
     });
+
     setNewClub({
       name: "",
       description: "",
