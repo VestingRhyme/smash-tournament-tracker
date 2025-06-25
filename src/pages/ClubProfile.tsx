@@ -1,15 +1,19 @@
 
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Users, Calendar, MapPin, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useLeagueContext } from "@/contexts/LeagueContext";
+import { useAppContext } from "@/contexts/AppContext";
 
 const ClubProfile = () => {
   const { id } = useParams();
   const { clubs, leagueResults, playerClubRegistrations } = useLeagueContext();
+  const { players } = useAppContext();
   
   const club = clubs.find(c => c.id === id);
   
@@ -31,6 +35,9 @@ const ClubProfile = () => {
   const clubResults = leagueResults.filter(result => 
     result.homeClub === club.name || result.awayClub === club.name
   );
+
+  // Get players who are members of this club
+  const clubPlayerDetails = players.filter(player => player.club === club.name);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -65,7 +72,7 @@ const ClubProfile = () => {
                   <Users className="h-5 w-5 text-green-600" />
                   <div>
                     <div className="font-semibold">Players</div>
-                    <div className="text-sm text-slate-600">{clubPlayers.length}</div>
+                    <div className="text-sm text-slate-600">{clubPlayerDetails.length}</div>
                   </div>
                 </div>
                 
@@ -108,113 +115,179 @@ const ClubProfile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Club Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                Club Statistics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{club.matchesWon}</div>
-                  <div className="text-sm text-slate-600">Matches Won</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600 mb-2">{club.matchesLost}</div>
-                  <div className="text-sm text-slate-600">Matches Lost</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{club.gamesWon}</div>
-                  <div className="text-sm text-slate-600">Games Won</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-600 mb-2">{club.gamesLost}</div>
-                  <div className="text-sm text-slate-600">Games Lost</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Tabs Section */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="results">Results</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+            <TabsTrigger value="players">Players</TabsTrigger>
+          </TabsList>
 
-          {/* Club Players */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Club Players
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {clubPlayers.length > 0 ? (
-                  clubPlayers.map((registration) => (
-                    <div key={registration.playerId} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{registration.playerName}</h4>
-                      </div>
-                    </div>
-                  ))
+          <TabsContent value="overview" className="space-y-8">
+            {/* Club Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Club Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">{club.matchesWon}</div>
+                    <div className="text-sm text-slate-600">Matches Won</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-red-600 mb-2">{club.matchesLost}</div>
+                    <div className="text-sm text-slate-600">Matches Lost</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{club.gamesWon}</div>
+                    <div className="text-sm text-slate-600">Games Won</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-600 mb-2">{club.gamesLost}</div>
+                    <div className="text-sm text-slate-600">Games Lost</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="results" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Match Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {clubResults.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Home</TableHead>
+                        <TableHead>Away</TableHead>
+                        <TableHead>Score</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Result</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clubResults.map((result) => {
+                        const isHome = result.homeClub === club.name;
+                        const won = isHome ? result.homeScore > result.awayScore : result.awayScore > result.homeScore;
+                        const draw = result.homeScore === result.awayScore;
+                        
+                        return (
+                          <TableRow key={result.id}>
+                            <TableCell className="font-medium">{result.homeClub}</TableCell>
+                            <TableCell>{result.awayClub}</TableCell>
+                            <TableCell className="font-mono">{result.homeScore}-{result.awayScore}</TableCell>
+                            <TableCell>{result.date}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={won ? "default" : draw ? "secondary" : "destructive"}
+                                className={won ? "bg-green-500" : draw ? "bg-gray-500" : "bg-red-500"}
+                              >
+                                {won ? "W" : draw ? "D" : "L"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 ) : (
                   <p className="text-center text-slate-500 py-8">
-                    No players registered to this club yet
+                    No match results recorded yet
                   </p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Match Results */}
-        {clubResults.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Match Results
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Home</TableHead>
-                    <TableHead>Away</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Result</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {clubResults.map((result) => {
-                    const isHome = result.homeClub === club.name;
-                    const won = isHome ? result.homeScore > result.awayScore : result.awayScore > result.homeScore;
-                    const draw = result.homeScore === result.awayScore;
-                    
-                    return (
-                      <TableRow key={result.id}>
-                        <TableCell className="font-medium">{result.homeClub}</TableCell>
-                        <TableCell>{result.awayClub}</TableCell>
-                        <TableCell className="font-mono">{result.homeScore}-{result.awayScore}</TableCell>
-                        <TableCell>{result.date}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={won ? "default" : draw ? "secondary" : "destructive"}
-                            className={won ? "bg-green-500" : draw ? "bg-gray-500" : "bg-red-500"}
-                          >
-                            {won ? "W" : draw ? "D" : "L"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+          <TabsContent value="teams" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Club Teams
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">A Team</h4>
+                    <p className="text-sm text-slate-600">Division: {club.division}</p>
+                    <p className="text-sm text-slate-600">Players: {Math.ceil(clubPlayerDetails.length / 2)}</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">B Team</h4>
+                    <p className="text-sm text-slate-600">Division: {club.division}</p>
+                    <p className="text-sm text-slate-600">Players: {Math.floor(clubPlayerDetails.length / 2)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="players" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Club Players
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {clubPlayerDetails.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Age</TableHead>
+                          <TableHead>Categories</TableHead>
+                          <TableHead>Ranking</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {clubPlayerDetails.map((player) => (
+                          <TableRow key={player.id}>
+                            <TableCell className="font-medium">
+                              <Link to={`/player/${player.id}`} className="text-blue-600 hover:underline">
+                                {player.name}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{player.age}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1 flex-wrap">
+                                {player.categories.map((cat, index) => (
+                                  <Badge key={index} variant="outline" className="text-xs">
+                                    {cat}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell>#{player.ranking}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-center text-slate-500 py-8">
+                      No players registered to this club yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

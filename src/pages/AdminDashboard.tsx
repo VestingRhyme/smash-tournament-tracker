@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Trophy, MapPin, Settings, Plus } from "lucide-react";
+import { Calendar, Users, Trophy, MapPin, Settings, Plus, Building } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 import { useNavigate } from "react-router-dom";
@@ -58,7 +58,7 @@ const AdminDashboard = () => {
                   <p className="text-sm font-medium text-gray-600">Clubs</p>
                   <p className="text-3xl font-bold text-purple-600">{clubs.length}</p>
                 </div>
-                <Settings className="h-12 w-12 text-purple-500" />
+                <Building className="h-12 w-12 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Management Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {/* Tournament Management */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate('/admin/tournaments')}>
             <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
@@ -117,6 +117,28 @@ const AdminDashboard = () => {
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Manage Players
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Club Management */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur hover:shadow-xl transition-shadow cursor-pointer" onClick={() => navigate('/admin/clubs')}>
+            <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                Clubs
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-purple-600">{clubs.length}</p>
+                  <p className="text-sm text-gray-600">Total Clubs</p>
+                </div>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Manage Clubs
                 </Button>
               </div>
             </CardContent>
