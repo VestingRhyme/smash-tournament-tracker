@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,15 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Calendar, Clock, MapPin, ArrowLeft } from "lucide-react";
+import { Plus, Calendar, Clock, MapPin, ArrowLeft, Edit, Save } from "lucide-react";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
 const AdminFixtures = () => {
   const navigate = useNavigate();
-  const { clubs, fixtures, addFixture } = useLeagueContext();
+  const { clubs, fixtures, addFixture, updateFixture, addResult } = useLeagueContext();
   const [newFixture, setNewFixture] = useState({ homeClub: "", awayClub: "", date: "", location: "", division: "" });
+  const [editingFixture, setEditingFixture] = useState<string | null>(null);
+  const [fixtureResults, setFixtureResults] = useState<{[key: string]: {homeScore: string, awayScore: string}}>({});
 
   // Separate upcoming and past fixtures
   const today = new Date().toISOString().split('T')[0];
@@ -36,6 +37,50 @@ const AdminFixtures = () => {
     });
 
     setNewFixture({ homeClub: "", awayClub: "", date: "", location: "", division: "" });
+  };
+
+  const handleEditResult = (fixtureId: string) => {
+    setEditingFixture(fixtureId);
+    const fixture = fixtures.find(f => f.id === fixtureId);
+    if (fixture) {
+      setFixtureResults({
+        ...fixtureResults,
+        [fixtureId]: {
+          homeScore: fixture.homeScore?.toString() || "",
+          awayScore: fixture.awayScore?.toString() || ""
+        }
+      });
+    }
+  };
+
+  const handleSaveResult = (fixtureId: string) => {
+    const result = fixtureResults[fixtureId];
+    if (!result || !result.homeScore || !result.awayScore) {
+      alert("Please enter both scores");
+      return;
+    }
+
+    const fixture = fixtures.find(f => f.id === fixtureId);
+    if (fixture) {
+      // Update fixture with result
+      updateFixture(fixtureId, {
+        homeScore: parseInt(result.homeScore),
+        awayScore: parseInt(result.awayScore),
+        status: "completed" as const
+      });
+
+      // Add to results
+      addResult({
+        homeClub: fixture.homeClub,
+        awayClub: fixture.awayClub,
+        homeScore: parseInt(result.homeScore),
+        awayScore: parseInt(result.awayScore),
+        date: fixture.date,
+        division: fixture.division
+      });
+    }
+
+    setEditingFixture(null);
   };
 
   return (
@@ -158,12 +203,13 @@ const AdminFixtures = () => {
                     <TableHead className="px-4">Match</TableHead>
                     <TableHead className="px-4">Date</TableHead>
                     <TableHead className="px-4">Location</TableHead>
+                    <TableHead className="px-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {upcomingFixtures.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-6 text-gray-500">
+                      <TableCell colSpan={4} className="text-center py-6 text-gray-500">
                         No upcoming fixtures scheduled
                       </TableCell>
                     </TableRow>
@@ -184,6 +230,17 @@ const AdminFixtures = () => {
                             <MapPin className="h-3 w-3 text-gray-400" />
                             {fixture.location}
                           </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditResult(fixture.id)}
+                            className="h-8 text-xs"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Add Result
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -208,12 +265,13 @@ const AdminFixtures = () => {
                     <TableHead className="px-4">Match</TableHead>
                     <TableHead className="px-4">Date</TableHead>
                     <TableHead className="px-4">Result</TableHead>
+                    <TableHead className="px-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pastFixtures.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-6 text-gray-500">
+                      <TableCell colSpan={4} className="text-center py-6 text-gray-500">
                         No past fixtures
                       </TableCell>
                     </TableRow>
@@ -229,11 +287,75 @@ const AdminFixtures = () => {
                         <TableCell className="px-4 py-3 text-sm">
                           {new Date(fixture.date).toLocaleDateString()}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-sm">
-                          {fixture.homeScore !== undefined && fixture.awayScore !== undefined 
-                            ? `${fixture.homeScore} - ${fixture.awayScore}`
-                            : fixture.status === "completed" ? "Completed" : "Scheduled"
-                          }
+                        <TableCell className="px-4 py-3">
+                          {editingFixture === fixture.id ? (
+                            <div className="flex gap-2">
+                              <Input
+                                type="number"
+                                placeholder="Home"
+                                value={fixtureResults[fixture.id]?.homeScore || ""}
+                                onChange={(e) => setFixtureResults({
+                                  ...fixtureResults,
+                                  [fixture.id]: {
+                                    ...fixtureResults[fixture.id],
+                                    homeScore: e.target.value
+                                  }
+                                })}
+                                className="w-16 h-8"
+                              />
+                              <span className="self-center">-</span>
+                              <Input
+                                type="number"
+                                placeholder="Away"
+                                value={fixtureResults[fixture.id]?.awayScore || ""}
+                                onChange={(e) => setFixtureResults({
+                                  ...fixtureResults,
+                                  [fixture.id]: {
+                                    ...fixtureResults[fixture.id],
+                                    awayScore: e.target.value
+                                  }
+                                })}
+                                className="w-16 h-8"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-sm">
+                              {fixture.homeScore !== undefined && fixture.awayScore !== undefined 
+                                ? `${fixture.homeScore} - ${fixture.awayScore}`
+                                : "No result"
+                              }
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          {editingFixture === fixture.id ? (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveResult(fixture.id)}
+                                className="h-8 text-xs"
+                              >
+                                <Save className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingFixture(null)}
+                                className="h-8 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditResult(fixture.id)}
+                              className="h-8 text-xs"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

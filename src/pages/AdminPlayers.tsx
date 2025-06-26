@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,9 +17,6 @@ const AdminPlayers = () => {
   const { players, addPlayer, deletePlayer } = useAppContext();
   const [newPlayer, setNewPlayer] = useState({
     name: "",
-    age: "",
-    country: "",
-    height: "",
     gender: "",
     club: "",
     team: ""
@@ -26,11 +24,16 @@ const AdminPlayers = () => {
 
   const handleAddPlayer = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newPlayer.name || !newPlayer.gender) {
+      alert("Please fill in required fields");
+      return;
+    }
+    
     addPlayer({
       ...newPlayer,
       club: newPlayer.team || newPlayer.club // Use team if selected, otherwise use club
     });
-    setNewPlayer({ name: "", age: "", country: "", height: "", gender: "", club: "", team: "" });
+    setNewPlayer({ name: "", gender: "", club: "", team: "" });
   };
 
   return (
@@ -54,25 +57,6 @@ const AdminPlayers = () => {
                 placeholder="Player Name"
                 value={newPlayer.name}
                 onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-                required
-              />
-              <Input
-                placeholder="Age"
-                type="number"
-                value={newPlayer.age}
-                onChange={(e) => setNewPlayer({ ...newPlayer, age: e.target.value })}
-                required
-              />
-              <Input
-                placeholder="Country"
-                value={newPlayer.country}
-                onChange={(e) => setNewPlayer({ ...newPlayer, country: e.target.value })}
-                required
-              />
-              <Input
-                placeholder="Height"
-                value={newPlayer.height}
-                onChange={(e) => setNewPlayer({ ...newPlayer, height: e.target.value })}
                 required
               />
               <Select value={newPlayer.gender} onValueChange={(value) => setNewPlayer({ ...newPlayer, gender: value })}>
@@ -112,10 +96,9 @@ const AdminPlayers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Age</TableHead>
-                  <TableHead>Country</TableHead>
+                  <TableHead>Gender</TableHead>
                   <TableHead>Categories</TableHead>
-                  <TableHead>Club</TableHead>
+                  <TableHead>Club/Team</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -123,8 +106,7 @@ const AdminPlayers = () => {
                 {players.map((player) => (
                   <TableRow key={player.id}>
                     <TableCell className="font-medium">{player.name}</TableCell>
-                    <TableCell>{player.age}</TableCell>
-                    <TableCell>{player.country}</TableCell>
+                    <TableCell>{player.gender}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
                         {(player.categories || []).map((cat, index) => (

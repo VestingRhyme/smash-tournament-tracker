@@ -1,61 +1,53 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppProvider } from "./contexts/AppContext";
-import { LeagueProvider } from "./contexts/LeagueContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import TournamentDetails from "./pages/TournamentDetails";
+import Players from "./pages/Players";
 import PlayerProfile from "./pages/PlayerProfile";
+import EditPlayer from "./pages/EditPlayer";
+import Rankings from "./pages/Rankings";
+import League from "./pages/League";
+import ClubProfile from "./pages/ClubProfile";
+import TournamentDetails from "./pages/TournamentDetails";
+import TournamentPlayerDetails from "./pages/TournamentPlayerDetails";
+import EditTournament from "./pages/EditTournament";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminPlayers from "./pages/AdminPlayers";
+import AdminMatches from "./pages/AdminMatches";
 import AdminTournaments from "./pages/AdminTournaments";
 import AdminClubs from "./pages/AdminClubs";
 import AdminFixtures from "./pages/AdminFixtures";
-import AdminMatches from "./pages/AdminMatches";
-import EditTournament from "./pages/EditTournament";
-import EditPlayer from "./pages/EditPlayer";
-import Rankings from "./pages/Rankings";
-import Players from "./pages/Players";
-import League from "./pages/League";
-import ClubProfile from "./pages/ClubProfile";
 import NotFound from "./pages/NotFound";
+import { AppProvider } from "./contexts/AppContext";
+import { LeagueProvider } from "./contexts/LeagueContext";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AppProvider>
-        <LeagueProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/tournament/:id" element={<TournamentDetails />} />
-              <Route path="/player/:id" element={<PlayerProfile />} />
-              <Route path="/club/:id" element={<ClubProfile />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/players" element={<AdminPlayers />} />
-              <Route path="/admin/tournaments" element={<AdminTournaments />} />
-              <Route path="/admin/clubs" element={<AdminClubs />} />
-              <Route path="/admin/fixtures" element={<AdminFixtures />} />
-              <Route path="/admin/matches" element={<AdminMatches />} />
-              <Route path="/admin/tournament/edit/:id" element={<EditTournament />} />
-              <Route path="/admin/player/edit/:id" element={<EditPlayer />} />
-              <Route path="/rankings" element={<Rankings />} />
-              <Route path="/players" element={<Players />} />
-              <Route path="/league" element={<League />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </LeagueProvider>
-      </AppProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <AppProvider>
+      <LeagueProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/players" element={<Players />} />
+            <Route path="/player/:id" element={<PlayerProfile />} />
+            <Route path="/rankings" element={<Rankings />} />
+            <Route path="/league" element={<League />} />
+            <Route path="/club/:id" element={<ClubProfile />} />
+            <Route path="/tournament/:id" element={<TournamentDetails />} />
+            <Route path="/tournament/:tournamentId/player/:playerId" element={<TournamentPlayerDetails />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/players" element={<AdminPlayers />} />
+            <Route path="/admin/player/edit/:id" element={<EditPlayer />} />
+            <Route path="/admin/matches" element={<AdminMatches />} />
+            <Route path="/admin/tournaments" element={<AdminTournaments />} />
+            <Route path="/admin/tournament/edit/:id" element={<EditTournament />} />
+            <Route path="/admin/clubs" element={<AdminClubs />} />
+            <Route path="/admin/fixtures" element={<AdminFixtures />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+      </LeagueProvider>
+    </AppProvider>
+  );
+}
 
 export default App;

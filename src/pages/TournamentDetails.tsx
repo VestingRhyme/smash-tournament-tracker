@@ -1,7 +1,6 @@
-
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Calendar, MapPin, Trophy, Users, DollarSign, Edit, Crown } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
+import { Calendar, MapPin, Trophy, Users, DollarSign, Edit, Crown, Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +16,9 @@ const TournamentDetails = () => {
   const { id } = useParams();
   const { tournaments, matches, players } = useAppContext();
   const tournament = tournaments.find(t => t.id === id);
-  const [isEditingBrackets, setIsEditingBrackets] = useState(false);
+  const [isEditingPlayers, setIsEditingPlayers] = useState(false);
+  const [isEditingMatches, setIsEditingMatches] = useState(false);
+  const [isEditingDraws, setIsEditingDraws] = useState(false);
   const [isEditingWinners, setIsEditingWinners] = useState(false);
   const [newWinner, setNewWinner] = useState({ event: "", winner: "", runnerUp: "" });
   const [winners, setWinners] = useState([
@@ -58,7 +59,7 @@ const TournamentDetails = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-4 md:py-8">
-        {/* Tournament Header - Mobile Responsive */}
+        {/* Tournament Header */}
         <div className="bg-white rounded-xl shadow-lg p-4 md:p-8 mb-6 md:mb-8">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-4 md:gap-6">
             <div className="flex-1 w-full">
@@ -120,39 +121,170 @@ const TournamentDetails = () => {
         </div>
 
         {/* Tournament Content */}
-        <Tabs defaultValue="draws" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 text-xs md:text-sm">
-            <TabsTrigger value="draws">Draws & Brackets</TabsTrigger>
-            <TabsTrigger value="winners">Winners</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-4 md:space-y-6">
+          <TabsList className="grid w-full grid-cols-5 text-xs md:text-sm">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="players">Players</TabsTrigger>
+            <TabsTrigger value="matches">Matches</TabsTrigger>
+            <TabsTrigger value="draws">Draws</TabsTrigger>
+            <TabsTrigger value="winners">Winners</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="draws" className="space-y-4">
+          <TabsContent value="overview" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Tournament Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Quick Stats</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Total Players:</span>
+                        <span className="font-medium">{participatingPlayers.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Matches:</span>
+                        <span className="font-medium">{tournamentMatches.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Events:</span>
+                        <span className="font-medium">{tournament.events}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3">Tournament Info</h4>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Format:</strong> Single/Double Elimination</p>
+                      <p><strong>Entry Fee:</strong> Included in prize pool</p>
+                      <p><strong>Registration:</strong> Closed</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="players" className="space-y-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg md:text-xl">Tournament Brackets</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                  <Users className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+                  Tournament Players
+                </CardTitle>
                 <Button 
-                  onClick={() => setIsEditingBrackets(!isEditingBrackets)}
+                  onClick={() => setIsEditingPlayers(!isEditingPlayers)}
                   variant="outline"
                   size="sm"
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  {isEditingBrackets ? "Save" : "Edit"}
+                  {isEditingPlayers ? "Done" : "Edit"}
                 </Button>
               </CardHeader>
               <CardContent>
-                {isEditingBrackets ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                  {participatingPlayers.map((player) => (
+                    <div key={player.id} className="p-3 md:p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {player.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <Link 
+                            to={`/tournament/${id}/player/${player.id}`}
+                            className="font-semibold text-sm md:text-base hover:text-blue-600 cursor-pointer"
+                          >
+                            {player.name}
+                          </Link>
+                          <p className="text-xs md:text-sm text-slate-600">{player.category}</p>
+                          <Badge variant="outline" className="text-xs">
+                            Rank #{player.ranking}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="matches" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                  <Play className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
+                  Tournament Matches
+                </CardTitle>
+                <Button 
+                  onClick={() => setIsEditingMatches(!isEditingMatches)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isEditingMatches ? "Done" : "Edit"}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Match</TableHead>
+                      <TableHead>Round</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tournamentMatches.map((match) => (
+                      <TableRow key={match.id}>
+                        <TableCell>
+                          <div className="font-medium">{match.player1} vs {match.player2}</div>
+                          <div className="text-sm text-slate-600">{match.category}</div>
+                        </TableCell>
+                        <TableCell>{match.round || "Round 1"}</TableCell>
+                        <TableCell>{match.score || "Not started"}</TableCell>
+                        <TableCell>
+                          <Badge variant={match.status === 'completed' ? 'default' : 'secondary'}>
+                            {match.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="draws" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg md:text-xl">Tournament Draws</CardTitle>
+                <Button 
+                  onClick={() => setIsEditingDraws(!isEditingDraws)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  {isEditingDraws ? "Save" : "Edit"}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {isEditingDraws ? (
                   <div className="space-y-4">
                     <div className="text-center py-8 text-slate-500">
                       <Edit className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-sm md:text-base">Bracket editing interface</p>
-                      <p className="text-xs md:text-sm">Drag and drop players, set rounds, manage draws</p>
+                      <p className="text-sm md:text-base">Draw editing interface</p>
+                      <p className="text-xs md:text-sm">Manage tournament brackets and seeding</p>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 md:py-12 text-slate-500">
                     <Trophy className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm md:text-base">Tournament brackets will be displayed here</p>
+                    <p className="text-sm md:text-base">Tournament draws will be displayed here</p>
                     <p className="text-xs md:text-sm">Interactive bracket view</p>
                   </div>
                 )}
@@ -235,45 +367,6 @@ const TournamentDetails = () => {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="players" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                  <Users className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
-                  Tournament Participants
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                  {participatingPlayers.map((player) => (
-                    <div key={player.id} className="p-3 md:p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {player.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm md:text-base">{player.name}</h4>
-                          <p className="text-xs md:text-sm text-slate-600">{player.category}</p>
-                          <Badge variant="outline" className="text-xs">
-                            Rank #{player.ranking}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {participatingPlayers.length === 0 && (
-                  <div className="text-center py-8 md:py-12 text-slate-500">
-                    <Users className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm md:text-base">No players found for this tournament</p>
-                    <p className="text-xs md:text-sm">Players will appear here when matches are added</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
