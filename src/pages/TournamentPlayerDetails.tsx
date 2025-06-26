@@ -38,7 +38,9 @@ const TournamentPlayerDetails = () => {
   );
 
   // Calculate win/loss ratio
-  const completedMatches = playerTournamentMatches.filter(match => match.status === 'completed');
+  const completedMatches = playerTournamentMatches.filter(match => 
+    match.score && match.score !== "Not started"
+  );
   const wins = completedMatches.filter(match => {
     if (match.player1.includes(player.name)) {
       return match.score && match.score.split('-')[0] > match.score.split('-')[1];
@@ -47,6 +49,13 @@ const TournamentPlayerDetails = () => {
     }
   }).length;
   const losses = completedMatches.length - wins;
+
+  const getMatchStatus = (match: any) => {
+    if (match.score && match.score !== "Not started") {
+      return "completed";
+    }
+    return "scheduled";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -137,7 +146,7 @@ const TournamentPlayerDetails = () => {
                     const opponent = isPlayer1 ? match.player2 : match.player1;
                     
                     let result = "TBD";
-                    if (match.status === 'completed' && match.score) {
+                    if (getMatchStatus(match) === 'completed' && match.score) {
                       const scores = match.score.split('-');
                       const playerScore = isPlayer1 ? parseInt(scores[0]) : parseInt(scores[1]);
                       const opponentScore = isPlayer1 ? parseInt(scores[1]) : parseInt(scores[0]);
@@ -158,8 +167,8 @@ const TournamentPlayerDetails = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={match.status === 'completed' ? 'default' : 'secondary'}>
-                            {match.status}
+                          <Badge variant={getMatchStatus(match) === 'completed' ? 'default' : 'secondary'}>
+                            {getMatchStatus(match)}
                           </Badge>
                         </TableCell>
                       </TableRow>

@@ -13,6 +13,7 @@ const Navbar = () => {
     { path: "/rankings", label: "Rankings" },
     { path: "/players", label: "Players" },
     { path: "/league", label: "League" },
+    { path: "/admin/tournaments", label: "Tournaments" },
     { path: "/admin", label: "Admin" }
   ];
 

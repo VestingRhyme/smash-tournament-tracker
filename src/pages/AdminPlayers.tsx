@@ -10,11 +10,11 @@ import { Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
-import ClubAutocomplete from "@/components/ClubAutocomplete";
-import TeamAutocomplete from "@/components/TeamAutocomplete";
+import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const AdminPlayers = () => {
   const { players, addPlayer, deletePlayer } = useAppContext();
+  const { clubs } = useLeagueContext();
   const [newPlayer, setNewPlayer] = useState({
     name: "",
     gender: "",
@@ -35,6 +35,10 @@ const AdminPlayers = () => {
     });
     setNewPlayer({ name: "", gender: "", club: "", team: "" });
   };
+
+  // Get teams for selected club
+  const selectedClub = clubs.find(club => club.name === newPlayer.club);
+  const availableTeams = selectedClub?.teams || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -68,17 +72,33 @@ const AdminPlayers = () => {
                   <SelectItem value="girl">Female</SelectItem>
                 </SelectContent>
               </Select>
-              <ClubAutocomplete
-                value={newPlayer.club}
-                onChange={(value) => setNewPlayer({ ...newPlayer, club: value, team: "" })}
-                placeholder="Select Club"
-              />
-              <TeamAutocomplete
-                value={newPlayer.team}
-                onChange={(value) => setNewPlayer({ ...newPlayer, team: value })}
-                placeholder="Select Team"
-                selectedClub={newPlayer.club}
-              />
+              <Select 
+                value={newPlayer.club} 
+                onValueChange={(value) => setNewPlayer({ ...newPlayer, club: value, team: "" })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Club" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clubs.map((club) => (
+                    <SelectItem key={club.id} value={club.name}>{club.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select 
+                value={newPlayer.team} 
+                onValueChange={(value) => setNewPlayer({ ...newPlayer, team: value })}
+                disabled={!newPlayer.club}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTeams.map((team) => (
+                    <SelectItem key={team.id} value={team.name}>{team.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="md:col-span-2">
                 <Button type="submit" className="w-full">Add Player</Button>
               </div>
