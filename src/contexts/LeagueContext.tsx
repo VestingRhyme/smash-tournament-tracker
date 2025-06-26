@@ -2,11 +2,15 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { mockClubs, mockFixtures, mockResults, mockPlayerClubRegistrations } from '@/data/leagueData';
 
+export interface Team {
+  name: string;
+  division: "Division 1" | "Division 2";
+}
+
 export interface Club {
   id: string;
   name: string;
   division: "Division 1" | "Division 2";
-  country: string;
   points: number;
   gamesWon: number;
   gamesLost: number;
@@ -18,7 +22,7 @@ export interface Club {
   description?: string;
   wins?: number;
   losses?: number;
-  teams?: string[];
+  teams?: Team[];
 }
 
 export interface Fixture {

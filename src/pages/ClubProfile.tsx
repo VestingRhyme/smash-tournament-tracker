@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Users, Calendar, MapPin, Clock } from "lucide-react";
+import { Trophy, Users, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 import { useAppContext } from "@/contexts/AppContext";
@@ -54,9 +54,6 @@ const ClubProfile = () => {
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-4">
                 <h1 className="text-4xl font-bold text-slate-800">{club.name}</h1>
-                <Badge className="bg-blue-500 text-white">
-                  {club.division}
-                </Badge>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -84,13 +81,6 @@ const ClubProfile = () => {
                   </div>
                 </div>
               </div>
-
-              {club.description && (
-                <div className="mt-4">
-                  <h3 className="font-semibold mb-2">About</h3>
-                  <p className="text-slate-600">{club.description}</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -187,11 +177,11 @@ const ClubProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {(club.teams || ['A Team', 'B Team']).map((team, index) => (
+                  {(club.teams || []).map((team, index) => (
                     <div key={index} className="p-4 border rounded-lg">
-                      <h4 className="font-semibold mb-2">{team}</h4>
-                      <p className="text-sm text-slate-600">Division: {club.division}</p>
-                      <p className="text-sm text-slate-600">Players: {Math.ceil(clubPlayerDetails.length / (club.teams?.length || 2))}</p>
+                      <h4 className="font-semibold mb-2">{team.name}</h4>
+                      <p className="text-sm text-slate-600">Division: {team.division}</p>
+                      <p className="text-sm text-slate-600">Players: {Math.ceil(clubPlayerDetails.length / (club.teams?.length || 1))}</p>
                     </div>
                   ))}
                 </div>
@@ -214,7 +204,6 @@ const ClubProfile = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
-                          <TableHead>Age</TableHead>
                           <TableHead>Wins</TableHead>
                           <TableHead>Losses</TableHead>
                         </TableRow>
@@ -227,7 +216,6 @@ const ClubProfile = () => {
                                 {player.name}
                               </Link>
                             </TableCell>
-                            <TableCell>{player.age}</TableCell>
                             <TableCell>{player.matchesWon || 0}</TableCell>
                             <TableCell>{player.matchesLost || 0}</TableCell>
                           </TableRow>

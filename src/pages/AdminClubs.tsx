@@ -28,25 +28,21 @@ const AdminClubs = () => {
   const handleAddClub = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create separate club entries for each team with their respective divisions
-    newClub.teams.forEach((team, index) => {
-      const teamName = newClub.teams.length > 1 ? 
-        `${newClub.name} ${String.fromCharCode(65 + index)}` : 
-        newClub.name;
-      
-      addClub({
-        name: teamName,
-        division: team.division, // Use the team's selected division
-        country: "England",
-        description: newClub.description,
-        teams: [team.name],
-        points: 0,
-        gamesWon: 0,
-        gamesLost: 0,
-        matchesPlayed: 0,
-        matchesWon: 0,
-        matchesLost: 0
-      });
+    // Create one club with multiple teams
+    addClub({
+      name: newClub.name,
+      division: "Division 1", // Default division for the club
+      description: newClub.description,
+      teams: newClub.teams.map(team => ({
+        name: team.name,
+        division: team.division
+      })),
+      points: 0,
+      gamesWon: 0,
+      gamesLost: 0,
+      matchesPlayed: 0,
+      matchesWon: 0,
+      matchesLost: 0
     });
 
     setNewClub({
@@ -185,9 +181,9 @@ const AdminClubs = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap">
-                        {(club.teams || ['A Team']).map((team, index) => (
+                        {(club.teams || []).map((team, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
-                            {team}
+                            {team.name} ({team.division})
                           </Badge>
                         ))}
                       </div>

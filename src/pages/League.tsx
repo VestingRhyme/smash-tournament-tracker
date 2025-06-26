@@ -1,271 +1,266 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Calendar } from "lucide-react";
+import { Trophy, Calendar, Users, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { useLeagueContext } from "@/contexts/LeagueContext";
-import type { Club } from "@/data/leagueData";
-
-interface Team {
-  id: string;
-  name: string;
-  clubId: string;
-  clubName: string;
-  division: "Division 1" | "Division 2";
-  points: number;
-  gamesWon: number;
-  gamesLost: number;
-  matchesPlayed: number;
-  matchesWon: number;
-  matchesLost: number;
-}
 
 const League = () => {
-  const { clubs, leagueResults, playerClubRegistrations } = useLeagueContext();
+  const { clubs, fixtures, results } = useLeagueContext();
   const [selectedDivision, setSelectedDivision] = useState<"Division 1" | "Division 2">("Division 1");
 
-  // Convert clubs to teams
-  const generateTeams = (): Team[] => {
-    const teams: Team[] = [];
+  // Generate league table data with individual teams
+  const generateLeagueTable = (division: "Division 1" | "Division 2") => {
+    const teamsInDivision: any[] = [];
+    
     clubs.forEach(club => {
-      const clubTeams = club.teams || ['A Team'];
-      clubTeams.forEach((teamName, index) => {
-        const teamLetter = teamName.includes('Team') ? teamName.split(' ')[0] : 'A';
-        teams.push({
-          id: `${club.id}_${index}`,
-          name: `${club.name} ${teamLetter}`,
-          clubId: club.id,
-          clubName: club.name,
-          division: club.division,
-          points: club.points,
-          gamesWon: club.gamesWon,
-          gamesLost: club.gamesLost,
-          matchesPlayed: club.matchesPlayed,
-          matchesWon: club.matchesWon,
-          matchesLost: club.matchesLost
+      if (club.teams && club.teams.length > 0) {
+        club.teams.forEach(team => {
+          if (team.division === division) {
+            const teamName = club.teams!.length > 1 ? 
+              `${club.name} ${team.name.split(' ')[0]}` : 
+              club.name;
+            
+            teamsInDivision.push({
+              id: `${club.id}-${team.name}`,
+              name: teamName,
+              clubId: club.id,
+              division: team.division,
+              points: club.points || 0,
+              wins: club.wins || 0,
+              losses: club.losses || 0,
+              matchesPlayed: club.matchesPlayed || 0,
+              gamesWon: club.gamesWon || 0,
+              gamesLost: club.gamesLost || 0
+            });
+          }
         });
-      });
+      } else {
+        // For clubs without explicit teams, treat as single team
+        if (club.division === division) {
+          teamsInDivision.push({
+            id: club.id,
+            name: club.name,
+            clubId: club.id,
+            division: club.division,
+            points: club.points || 0,
+            wins: club.wins || 0,
+            losses: club.losses || 0,
+            matchesPlayed: club.matchesPlayed || 0,
+            gamesWon: club.gamesWon || 0,
+            gamesLost: club.gamesLost || 0
+          });
+        }
+      }
     });
-    return teams;
+
+    return teamsInDivision.sort((a, b) => b.points - a.points);
   };
 
-  const getTeamsByDivision = (division: "Division 1" | "Division 2"): Team[] => {
-    return generateTeams()
-      .filter(team => team.division === division)
-      .sort((a, b) => {
-        if (a.points !== b.points) return b.points - a.points;
-        const aGD = a.gamesWon - a.gamesLost;
-        const bGD = b.gamesWon - b.gamesLost;
-        if (aGD !== bGD) return bGD - aGD;
-        return b.gamesWon - a.gamesWon;
-      });
-  };
+  const division1Teams = generateLeagueTable("Division 1");
+  const division2Teams = generateLeagueTable("Division 2");
 
-  const getClubPlayers = (clubId: string) => {
-    return playerClubRegistrations.filter(reg => reg.clubId === clubId);
-  };
-
-  const getTeamResults = (teamName: string) => {
-    return leagueResults.filter(result => 
-      result.homeClub === teamName || result.awayClub === teamName
-    );
-  };
-
-  const divisionTeams = getTeamsByDivision(selectedDivision);
-  const divisionResults = leagueResults.filter(result => result.division === selectedDivision);
+  const upcomingFixtures = fixtures.filter(f => f.status === "scheduled").slice(0, 5);
+  const recentResults = results.slice(-5).reverse();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-4 md:py-8">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold text-slate-800 mb-4">League System</h1>
-          
-          <div className="mb-6">
-            <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as "Division 1" | "Division 2")}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Division 1">Division 1</SelectItem>
-                <SelectItem value="Division 2">Division 2</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">League Tables</h1>
+          <p className="text-lg text-slate-600">Current standings and upcoming fixtures</p>
         </div>
 
-        <Tabs defaultValue="table" className="space-y-4 md:space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="table">League Table</TabsTrigger>
-            <TabsTrigger value="fixtures">Fixtures & Results</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="table">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* League Table */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Trophy className="h-5 w-5" />
-                      {selectedDivision} Table
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12">Pos</TableHead>
-                          <TableHead>Team</TableHead>
-                          <TableHead className="text-center">P</TableHead>
-                          <TableHead className="text-center">W</TableHead>
-                          <TableHead className="text-center">L</TableHead>
-                          <TableHead className="text-center">D</TableHead>
-                          <TableHead className="text-center">Pts</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {divisionTeams.map((team, index) => (
-                          <TableRow key={team.id} className="hover:bg-slate-50">
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell>
-                              <Link to={`/club/${team.clubId}`} className="hover:text-blue-600 font-medium">
-                                {team.name}
-                              </Link>
-                            </TableCell>
-                            <TableCell className="text-center">{team.matchesPlayed}</TableCell>
-                            <TableCell className="text-center">{team.matchesWon}</TableCell>
-                            <TableCell className="text-center">{team.matchesLost}</TableCell>
-                            <TableCell className="text-center">{team.matchesPlayed - team.matchesWon - team.matchesLost}</TableCell>
-                            <TableCell className="text-center font-bold">{team.points}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Team Details */}
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Team Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {divisionTeams.map((team) => {
-                      const clubPlayers = getClubPlayers(team.clubId);
-                      const teamResults = getTeamResults(team.name);
-                      
-                      return (
-                        <div key={team.id} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Link to={`/club/${team.clubId}`} className="hover:text-blue-600">
-                              <h3 className="font-semibold text-lg">{team.name}</h3>
-                            </Link>
-                            <Badge variant="outline">{team.points} pts</Badge>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div>
-                              <h4 className="font-medium text-sm text-slate-600 mb-1">Club Players ({clubPlayers.length})</h4>
-                              <div className="text-sm">
-                                {clubPlayers.length > 0 ? (
-                                  clubPlayers.slice(0, 3).map((reg, idx) => (
-                                    <span key={reg.playerId}>
-                                      {reg.playerName}
-                                      {idx < Math.min(clubPlayers.length - 1, 2) && ", "}
-                                    </span>
-                                  ))
-                                ) : (
-                                  <span className="text-slate-500">No players registered</span>
-                                )}
-                                {clubPlayers.length > 3 && (
-                                  <span className="text-slate-500"> +{clubPlayers.length - 3} more</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <h4 className="font-medium text-sm text-slate-600 mb-1">Recent Results</h4>
-                              <div className="text-sm space-y-1">
-                                {teamResults.length > 0 ? (
-                                  teamResults.slice(-2).map((result) => (
-                                    <div key={result.id} className="text-xs">
-                                      {result.homeClub === team.name ? (
-                                        <>vs {result.awayClub} {result.homeScore}-{result.awayScore}</>
-                                      ) : (
-                                        <>@ {result.homeClub} {result.awayScore}-{result.homeScore}</>
-                                      )}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <span className="text-slate-500 text-xs">No results yet</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="fixtures">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main League Tables */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Division 1 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  {selectedDivision} Fixtures & Results
+                  <Trophy className="h-5 w-5 text-yellow-600" />
+                  Division 1
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Home</TableHead>
-                      <TableHead>Away</TableHead>
-                      <TableHead className="text-center">Score</TableHead>
+                      <TableHead className="w-12">Pos</TableHead>
+                      <TableHead>Team</TableHead>
+                      <TableHead className="text-center">MP</TableHead>
+                      <TableHead className="text-center">W</TableHead>
+                      <TableHead className="text-center">L</TableHead>
+                      <TableHead className="text-center">GW</TableHead>
+                      <TableHead className="text-center">GL</TableHead>
+                      <TableHead className="text-center">Pts</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {divisionResults.length > 0 ? (
-                      divisionResults.map((result) => (
-                        <TableRow key={result.id}>
-                          <TableCell>{result.date}</TableCell>
-                          <TableCell className="font-medium">{result.homeClub}</TableCell>
-                          <TableCell className="font-medium">{result.awayClub}</TableCell>
-                          <TableCell className="text-center font-mono">
-                            {result.homeScore}-{result.awayScore}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-slate-500 py-8">
-                          No fixtures or results available for {selectedDivision}
+                    {division1Teams.map((team, index) => (
+                      <TableRow key={team.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>
+                          <Link to={`/club/${team.clubId}`} className="text-blue-600 hover:underline font-medium">
+                            {team.name}
+                          </Link>
                         </TableCell>
+                        <TableCell className="text-center">{team.matchesPlayed}</TableCell>
+                        <TableCell className="text-center">{team.wins}</TableCell>
+                        <TableCell className="text-center">{team.losses}</TableCell>
+                        <TableCell className="text-center">{team.gamesWon}</TableCell>
+                        <TableCell className="text-center">{team.gamesLost}</TableCell>
+                        <TableCell className="text-center font-bold">{team.points}</TableCell>
                       </TableRow>
-                    )}
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+
+            {/* Division 2 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-gray-600" />
+                  Division 2
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">Pos</TableHead>
+                      <TableHead>Team</TableHead>
+                      <TableHead className="text-center">MP</TableHead>
+                      <TableHead className="text-center">W</TableHead>
+                      <TableHead className="text-center">L</TableHead>
+                      <TableHead className="text-center">GW</TableHead>
+                      <TableHead className="text-center">GL</TableHead>
+                      <TableHead className="text-center">Pts</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {division2Teams.map((team, index) => (
+                      <TableRow key={team.id}>
+                        <TableCell className="font-medium">{index + 1}</TableCell>
+                        <TableCell>
+                          <Link to={`/club/${team.clubId}`} className="text-blue-600 hover:underline font-medium">
+                            {team.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-center">{team.matchesPlayed}</TableCell>
+                        <TableCell className="text-center">{team.wins}</TableCell>
+                        <TableCell className="text-center">{team.losses}</TableCell>
+                        <TableCell className="text-center">{team.gamesWon}</TableCell>
+                        <TableCell className="text-center">{team.gamesLost}</TableCell>
+                        <TableCell className="text-center font-bold">{team.points}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Upcoming Fixtures */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Upcoming Fixtures
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {upcomingFixtures.map((fixture) => (
+                    <div key={fixture.id} className="p-3 border rounded-lg">
+                      <div className="font-medium text-sm">
+                        {fixture.homeClub} vs {fixture.awayClub}
+                      </div>
+                      <div className="text-xs text-slate-600 mt-1">
+                        {fixture.date} • {fixture.location}
+                      </div>
+                      <Badge variant="outline" className="mt-2 text-xs">
+                        {fixture.division}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Recent Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recentResults.map((result) => (
+                    <div key={result.id} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm">
+                          <div className="font-medium">{result.homeClub}</div>
+                          <div className="text-slate-600">{result.awayClub}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-lg">
+                            {result.homeScore}-{result.awayScore}
+                          </div>
+                          <div className="text-xs text-slate-600">{result.date}</div>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="mt-2 text-xs">
+                        {result.division}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* League Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  League Stats
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Total Teams</span>
+                    <span className="font-medium">{division1Teams.length + division2Teams.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Division 1 Teams</span>
+                    <span className="font-medium">{division1Teams.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Division 2 Teams</span>
+                    <span className="font-medium">{division2Teams.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-slate-600">Matches Played</span>
+                    <span className="font-medium">{results.length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

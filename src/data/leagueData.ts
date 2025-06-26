@@ -1,9 +1,13 @@
 
+export interface Team {
+  name: string;
+  division: "Division 1" | "Division 2";
+}
+
 export interface Club {
   id: string;
   name: string;
   division: "Division 1" | "Division 2";
-  country: string;
   points: number;
   gamesWon: number;
   gamesLost: number;
@@ -13,7 +17,7 @@ export interface Club {
   description?: string;
   wins?: number;
   losses?: number;
-  teams?: string[];
+  teams?: Team[];
 }
 
 export interface LeagueResult {
@@ -50,7 +54,6 @@ export const mockClubs: Club[] = [
     id: "1",
     name: "Badminton Elite",
     division: "Division 1",
-    country: "England",
     points: 15,
     gamesWon: 48,
     gamesLost: 24,
@@ -59,13 +62,15 @@ export const mockClubs: Club[] = [
     matchesLost: 0,
     wins: 3,
     losses: 0,
-    teams: ["A Team", "B Team"]
+    teams: [
+      { name: "A Team", division: "Division 1" },
+      { name: "B Team", division: "Division 2" }
+    ]
   },
   {
     id: "2",
     name: "Shuttlecock Masters",
     division: "Division 1",
-    country: "England",
     points: 12,
     gamesWon: 44,
     gamesLost: 28,
@@ -74,13 +79,14 @@ export const mockClubs: Club[] = [
     matchesLost: 1,
     wins: 2,
     losses: 1,
-    teams: ["A Team"]
+    teams: [
+      { name: "A Team", division: "Division 1" }
+    ]
   },
   {
     id: "3",
     name: "Racket Warriors",
     division: "Division 2",
-    country: "England",
     points: 9,
     gamesWon: 38,
     gamesLost: 34,
@@ -89,7 +95,10 @@ export const mockClubs: Club[] = [
     matchesLost: 2,
     wins: 1,
     losses: 2,
-    teams: ["A Team", "B Team"]
+    teams: [
+      { name: "A Team", division: "Division 1" },
+      { name: "B Team", division: "Division 2" }
+    ]
   }
 ];
 

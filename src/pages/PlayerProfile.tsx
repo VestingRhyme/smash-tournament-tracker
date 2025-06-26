@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Trophy, TrendingUp, Target, Globe, Calendar, Users } from "lucide-react";
+import { Trophy, TrendingUp, Target, Calendar, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -136,17 +137,7 @@ const PlayerProfile = () => {
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <div className="font-semibold">Club</div>
-                    <div className="text-sm text-slate-600">
-                      {playerClub ? playerClub.clubName : player.country}
-                    </div>
-                  </div>
-                </div>
-                
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-center gap-3">
                   <Target className="h-5 w-5 text-green-600" />
                   <div>
@@ -160,16 +151,10 @@ const PlayerProfile = () => {
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-purple-600" />
                   <div>
-                    <div className="font-semibold">Age</div>
-                    <div className="text-sm text-slate-600">{player.age} years</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-red-600" />
-                  <div>
-                    <div className="font-semibold">Height</div>
-                    <div className="text-sm text-slate-600">{player.height}</div>
+                    <div className="font-semibold">Club</div>
+                    <div className="text-sm text-slate-600">
+                      {playerClub ? playerClub.clubName : player.club || "No club"}
+                    </div>
                   </div>
                 </div>
               </div>
