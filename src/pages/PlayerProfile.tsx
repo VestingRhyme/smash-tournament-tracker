@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
 import { useAppContext } from "@/contexts/AppContext";
 import { useLeagueContext } from "@/contexts/LeagueContext";
 
 const PlayerProfile = () => {
   const { id } = useParams();
-  const { players, matches } = useAppContext();
+  const { players, matches, tournaments } = useAppContext();
   const { playerClubRegistrations } = useLeagueContext();
   const [selectedOpponent, setSelectedOpponent] = useState<string>("");
 
@@ -43,6 +44,16 @@ const PlayerProfile = () => {
   const playerMatches = matches.filter(match => 
     match.player1.includes(player.name) || match.player2.includes(player.name)
   );
+
+  // Get tournaments this player has participated in
+  const playerTournaments = tournaments.filter(tournament => {
+    // Check if player has matches in this tournament
+    const tournamentMatches = matches.filter(match => 
+      match.tournamentId === tournament.id && 
+      (match.player1.includes(player.name) || match.player2.includes(player.name))
+    );
+    return tournamentMatches.length > 0;
+  });
 
   // Get opponents this player has played against
   const getOpponents = () => {
@@ -162,216 +173,251 @@ const PlayerProfile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Stats */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* All Rankings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  Current Rankings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(player.categories || [player.category]).map((category, index) => {
-                    const categoryRanking = allPlayerVersions.find(p => 
-                      (p.categories?.includes(category) || p.category === category)
-                    );
-                    return (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h4 className="font-medium">{category}</h4>
-                            <p className="text-sm text-slate-600">Rank #{categoryRanking?.ranking || player.ranking}</p>
-                            {player.rankingPoints && (
-                              <p className="text-sm text-blue-600 font-medium">{player.rankingPoints} ranking points</p>
-                            )}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="matches">Matches</TabsTrigger>
+            <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                {/* All Rankings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      Current Rankings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(player.categories || [player.category]).map((category, index) => {
+                        const categoryRanking = allPlayerVersions.find(p => 
+                          (p.categories?.includes(category) || p.category === category)
+                        );
+                        return (
+                          <div key={index} className="p-4 border rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">{category}</h4>
+                                <p className="text-sm text-slate-600">Rank #{categoryRanking?.ranking || player.ranking}</p>
+                                {player.rankingPoints && (
+                                  <p className="text-sm text-blue-600 font-medium">{player.rankingPoints} ranking points</p>
+                                )}
+                              </div>
+                              <Badge variant="outline">
+                                {player.winRate}% WR
+                              </Badge>
+                            </div>
                           </div>
-                          <Badge variant="outline">
-                            {player.winRate}% WR
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Performance Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{player.matchesWon}</div>
-                    <div className="text-sm text-slate-600">Matches Won</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-red-600 mb-2">{player.matchesLost}</div>
-                    <div className="text-sm text-slate-600">Matches Lost</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{player.winRate}%</div>
-                    <div className="text-sm text-slate-600">Win Rate</div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Win Rate</span>
-                    <span className="text-sm text-slate-600">{player.winRate}%</span>
-                  </div>
-                  <Progress value={player.winRate} className="h-3" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Form</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  {(player.recentForm || []).slice(0, 5).map((result, index) => (
-                    <div
-                      key={index}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
-                        result === 'W' ? 'bg-green-500' : 'bg-red-500'
-                      }`}
-                    >
-                      {result}
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600 mt-3">
-                  Last 5 matches (most recent first)
-                </p>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Interactive Head-to-Head Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Head-to-Head Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Select Opponent</label>
-                  <Select value={selectedOpponent} onValueChange={setSelectedOpponent}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose an opponent to view head-to-head record" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {opponents.map((opponent) => (
-                        <SelectItem key={opponent} value={opponent}>
-                          {opponent}
-                        </SelectItem>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Performance Statistics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-green-600 mb-2">{player.matchesWon}</div>
+                        <div className="text-sm text-slate-600">Matches Won</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-red-600 mb-2">{player.matchesLost}</div>
+                        <div className="text-sm text-slate-600">Matches Lost</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600 mb-2">{player.winRate}%</div>
+                        <div className="text-sm text-slate-600">Win Rate</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">Win Rate</span>
+                        <span className="text-sm text-slate-600">{player.winRate}%</span>
+                      </div>
+                      <Progress value={player.winRate} className="h-3" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Form</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      {(player.recentForm || []).slice(0, 5).map((result, index) => (
+                        <div
+                          key={index}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${
+                            result === 'W' ? 'bg-green-500' : 'bg-red-500'
+                          }`}
+                        >
+                          {result}
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    </div>
+                    <p className="text-sm text-slate-600 mt-3">
+                      Last 5 matches (most recent first)
+                    </p>
+                  </CardContent>
+                </Card>
 
-                {selectedH2H && (
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-lg bg-slate-50">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">
-                          {player.name} vs {selectedOpponent}
-                        </h4>
-                        <div className="text-right">
-                          <div className="font-bold text-lg">
-                            <span className={selectedH2H.player1Wins > selectedH2H.player2Wins ? "text-green-600" : "text-red-600"}>
-                              {selectedH2H.player1Wins}
-                            </span>
-                            <span className="text-slate-400 mx-1">-</span>
-                            <span className={selectedH2H.player2Wins > selectedH2H.player1Wins ? "text-green-600" : "text-red-600"}>
-                              {selectedH2H.player2Wins}
-                            </span>
-                          </div>
-                          <div className="text-sm text-slate-600">
-                            {selectedH2H.totalMatches} matches played
-                          </div>
-                        </div>
-                      </div>
+                {/* Interactive Head-to-Head Section */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Head-to-Head Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Select Opponent</label>
+                      <Select value={selectedOpponent} onValueChange={setSelectedOpponent}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose an opponent to view head-to-head record" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {opponents.map((opponent) => (
+                            <SelectItem key={opponent} value={opponent}>
+                              {opponent}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {selectedH2H.matches.length > 0 && (
-                      <div>
-                        <h5 className="font-medium mb-2">Match History</h5>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Team 1</TableHead>
-                              <TableHead>Team 2</TableHead>
-                              <TableHead>Score</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Result</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {selectedH2H.matches.map((match) => {
-                              const parseScore = (score: string) => {
-                                const sets = score.split(',').map(s => s.trim());
-                                let p1Total = 0;
-                                let p2Total = 0;
-                                
-                                sets.forEach(set => {
-                                  const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
-                                  p1Total += p1;
-                                  p2Total += p2;
-                                });
-                                
-                                return { p1Total, p2Total };
-                              };
+                    {selectedH2H && (
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg bg-slate-50">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold">
+                              {player.name} vs {selectedOpponent}
+                            </h4>
+                            <div className="text-right">
+                              <div className="font-bold text-lg">
+                                <span className={selectedH2H.player1Wins > selectedH2H.player2Wins ? "text-green-600" : "text-red-600"}>
+                                  {selectedH2H.player1Wins}
+                                </span>
+                                <span className="text-slate-400 mx-1">-</span>
+                                <span className={selectedH2H.player2Wins > selectedH2H.player1Wins ? "text-green-600" : "text-red-600"}>
+                                  {selectedH2H.player2Wins}
+                                </span>
+                              </div>
+                              <div className="text-sm text-slate-600">
+                                {selectedH2H.totalMatches} matches played
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
-                              const { p1Total, p2Total } = parseScore(match.score);
-                              const playerIsPlayer1 = match.player1.includes(player.name);
-                              const won = playerIsPlayer1 ? p1Total > p2Total : p2Total > p1Total;
-
-                              return (
-                                <TableRow key={match.id}>
-                                  <TableCell>{formatPlayerNames(match.player1)}</TableCell>
-                                  <TableCell>{formatPlayerNames(match.player2)}</TableCell>
-                                  <TableCell className="font-mono">{match.score}</TableCell>
-                                  <TableCell>{match.date || "Not set"}</TableCell>
-                                  <TableCell>
-                                    <Badge variant={won ? "default" : "destructive"}>
-                                      {won ? "W" : "L"}
-                                    </Badge>
-                                  </TableCell>
+                        {selectedH2H.matches.length > 0 && (
+                          <div>
+                            <h5 className="font-medium mb-2">Match History</h5>
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Team 1</TableHead>
+                                  <TableHead>Team 2</TableHead>
+                                  <TableHead>Score</TableHead>
+                                  <TableHead>Date</TableHead>
+                                  <TableHead>Result</TableHead>
                                 </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
+                              </TableHeader>
+                              <TableBody>
+                                {selectedH2H.matches.map((match) => {
+                                  const parseScore = (score: string) => {
+                                    const sets = score.split(',').map(s => s.trim());
+                                    let p1Total = 0;
+                                    let p2Total = 0;
+                                    
+                                    sets.forEach(set => {
+                                      const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+                                      p1Total += p1;
+                                      p2Total += p2;
+                                    });
+                                    
+                                    return { p1Total, p2Total };
+                                  };
+
+                                  const { p1Total, p2Total } = parseScore(match.score);
+                                  const playerIsPlayer1 = match.player1.includes(player.name);
+                                  const won = playerIsPlayer1 ? p1Total > p2Total : p2Total > p1Total;
+
+                                  return (
+                                    <TableRow key={match.id}>
+                                      <TableCell>{formatPlayerNames(match.player1)}</TableCell>
+                                      <TableCell>{formatPlayerNames(match.player2)}</TableCell>
+                                      <TableCell className="font-mono">{match.score}</TableCell>
+                                      <TableCell>{match.date || "Not set"}</TableCell>
+                                      <TableCell>
+                                        <Badge variant={won ? "default" : "destructive"}>
+                                          {won ? "W" : "L"}
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
 
-                {opponents.length === 0 && (
-                  <p className="text-center text-slate-500 py-8">
-                    No opponents found. This player hasn't played any matches with recorded scores yet.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                    {opponents.length === 0 && (
+                      <p className="text-center text-slate-500 py-8">
+                        No opponents found. This player hasn't played any matches with recorded scores yet.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Recent Matches */}
+              {/* Achievements */}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      Major Achievements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {player.achievements.map((achievement, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <Trophy className="h-4 w-4 text-white" />
+                          </div>
+                          <span className="text-sm">{achievement}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="matches" className="space-y-6">
+            {/* League Matches */}
             {playerMatches.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Matches</CardTitle>
+                  <CardTitle>League Matches</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -381,48 +427,151 @@ const PlayerProfile = () => {
                         <TableHead>Team 2</TableHead>
                         <TableHead>Score</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Result</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {playerMatches.map((match) => (
-                        <TableRow key={match.id}>
-                          <TableCell>{formatPlayerNames(match.player1)}</TableCell>
-                          <TableCell>{formatPlayerNames(match.player2)}</TableCell>
-                          <TableCell>{match.score || "TBD"}</TableCell>
-                          <TableCell>{match.date || "Not set"}</TableCell>
-                        </TableRow>
-                      ))}
+                      {playerMatches.map((match) => {
+                        const parseScore = (score: string) => {
+                          if (!score || score === "TBD") return { p1Total: 0, p2Total: 0 };
+                          const sets = score.split(',').map(s => s.trim());
+                          let p1Total = 0;
+                          let p2Total = 0;
+                          
+                          sets.forEach(set => {
+                            const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+                            p1Total += p1;
+                            p2Total += p2;
+                          });
+                          
+                          return { p1Total, p2Total };
+                        };
+
+                        const { p1Total, p2Total } = parseScore(match.score);
+                        const playerIsPlayer1 = match.player1.includes(player.name);
+                        const won = match.score && match.score !== "TBD" ? 
+                          (playerIsPlayer1 ? p1Total > p2Total : p2Total > p1Total) : null;
+
+                        return (
+                          <TableRow key={match.id}>
+                            <TableCell>{formatPlayerNames(match.player1)}</TableCell>
+                            <TableCell>{formatPlayerNames(match.player2)}</TableCell>
+                            <TableCell>{match.score || "TBD"}</TableCell>
+                            <TableCell>{match.date || "Not set"}</TableCell>
+                            <TableCell>
+                              {won !== null ? (
+                                <Badge variant={won ? "default" : "destructive"}>
+                                  {won ? "W" : "L"}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline">TBD</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </CardContent>
               </Card>
             )}
-          </div>
 
-          {/* Achievements */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  Major Achievements
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {player.achievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                        <Trophy className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-sm">{achievement}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            {playerMatches.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-slate-500">No league matches found for this player.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="tournaments" className="space-y-6">
+            {playerTournaments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {playerTournaments.map((tournament) => {
+                  const tournamentMatches = matches.filter(match => 
+                    match.tournamentId === tournament.id && 
+                    (match.player1.includes(player.name) || match.player2.includes(player.name))
+                  );
+
+                  return (
+                    <Card key={tournament.id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Trophy className="h-5 w-5" />
+                          <Link to={`/tournament/${tournament.id}`} className="text-blue-600 hover:underline">
+                            {tournament.name}
+                          </Link>
+                        </CardTitle>
+                        <div className="text-sm text-slate-600">
+                          {tournament.startDate} - {tournament.endDate} • {tournament.location}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="text-sm">
+                            <strong>Matches played:</strong> {tournamentMatches.length}
+                          </div>
+                          
+                          {tournamentMatches.length > 0 && (
+                            <div>
+                              <h5 className="font-medium mb-2">Tournament Matches</h5>
+                              <div className="space-y-2">
+                                {tournamentMatches.map((match) => {
+                                  const parseScore = (score: string) => {
+                                    if (!score || score === "TBD") return { p1Total: 0, p2Total: 0 };
+                                    const sets = score.split(',').map(s => s.trim());
+                                    let p1Total = 0;
+                                    let p2Total = 0;
+                                    
+                                    sets.forEach(set => {
+                                      const [p1, p2] = set.split('-').map(s => parseInt(s.trim()) || 0);
+                                      p1Total += p1;
+                                      p2Total += p2;
+                                    });
+                                    
+                                    return { p1Total, p2Total };
+                                  };
+
+                                  const { p1Total, p2Total } = parseScore(match.score);
+                                  const playerIsPlayer1 = match.player1.includes(player.name);
+                                  const won = match.score && match.score !== "TBD" ? 
+                                    (playerIsPlayer1 ? p1Total > p2Total : p2Total > p1Total) : null;
+
+                                  return (
+                                    <div key={match.id} className="p-3 border rounded-lg">
+                                      <div className="flex justify-between items-center">
+                                        <div className="text-sm">
+                                          <div>{match.player1} vs {match.player2}</div>
+                                          <div className="text-slate-600">{match.score || "TBD"}</div>
+                                        </div>
+                                        {won !== null && (
+                                          <Badge variant={won ? "default" : "destructive"}>
+                                            {won ? "W" : "L"}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-slate-500">This player hasn't participated in any tournaments yet.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
