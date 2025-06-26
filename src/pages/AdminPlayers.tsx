@@ -94,8 +94,8 @@ const AdminPlayers = () => {
                   <SelectValue placeholder="Select Team" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTeams.map((team) => (
-                    <SelectItem key={team.id} value={team.name}>{team.name}</SelectItem>
+                  {availableTeams.map((team, index) => (
+                    <SelectItem key={index} value={team.name}>{team.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
